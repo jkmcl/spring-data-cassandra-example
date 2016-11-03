@@ -6,10 +6,8 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cassandra.core.RowIterator;
 import org.springframework.data.cassandra.core.CassandraTemplate;
-import org.springframework.stereotype.Repository;
 
-@Repository
-public class CustomerDAO {
+public class CustomerRepositoryImpl implements CustomerRepositoryCustom {
 
 	private class CustomerRowIterator implements RowIterator {
 
@@ -35,9 +33,10 @@ public class CustomerDAO {
 	@Autowired
 	private CassandraTemplate cassTpl;
 
-	public void insert(List<Customer> customers) {
+	public List<Customer> insert(List<Customer> customers) {
 		String cql = "insert into customer (id, first_name, last_name) values (?, ?, ?)";
 		cassTpl.ingest(cql, new CustomerRowIterator(customers));
+		return customers;
 	}
 
 }

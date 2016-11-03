@@ -5,7 +5,7 @@ import java.util.List;
 import org.springframework.data.cassandra.repository.CassandraRepository;
 import org.springframework.data.cassandra.repository.Query;
 
-public interface CustomerRepository extends CassandraRepository<Customer> {
+public interface CustomerRepository extends CassandraRepository<Customer>, CustomerRepositoryCustom {
 
 	@Query("select * from customer where first_name=?0")
 	public Customer findByFirstName(String firstName);

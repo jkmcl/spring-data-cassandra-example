@@ -6,21 +6,15 @@ import org.springframework.data.cassandra.mapping.Column;
 import org.springframework.data.cassandra.mapping.PrimaryKey;
 import org.springframework.data.cassandra.mapping.Table;
 
-@Table(value = Customer.customer)
+@Table(value = "customer")
 public class Customer {
-	
-	public static final String customer = "customer";
-	public static final String ID = "id";
-	public static final String first_name = "first_name";
-	public static final String last_name = "last_name";
-
-	@PrimaryKey(value = ID)
+	@PrimaryKey(value = "id")
 	private UUID id;
 
-	@Column(value = first_name)
+	@Column(value = "first_name")
 	private String firstName;
 
-	@Column(value = last_name)
+	@Column(value = "last_name")
 	private String lastName;
 
 	public Customer() {
@@ -58,8 +52,7 @@ public class Customer {
 
 	@Override
 	public String toString() {
-		return String.format("Customer[id=%s, firstName='%s', lastName='%s']", this.id,
-				this.firstName, this.lastName);
+		return String.format("id=%s, firstName=%s, lastName=%s", this.id, this.firstName, this.lastName);
 	}
 
 }

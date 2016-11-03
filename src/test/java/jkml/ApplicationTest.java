@@ -15,7 +15,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.data.cassandra.core.CassandraTemplate;
 import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.context.TestExecutionListeners.MergeMode;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -33,17 +32,11 @@ public class ApplicationTest {
 	private static final Logger log = LoggerFactory.getLogger(ApplicationTest.class);
 
 	@Autowired
-	private CassandraTemplate cassTpl;
-
-	@Autowired
 	private CustomerRepository repository;
-
-	@Autowired
-	private CustomerDAO customerDAO;
 
 	@Test
 	public void testRepository() throws Exception {
-		log.info("Testing CustomerRepository...");
+		log.info("Testing repository...");
 		
 		repository.deleteAll();
 
@@ -77,9 +70,9 @@ public class ApplicationTest {
 
 	@Test
 	public void testTemplate() throws Exception {
-		log.info("Testing CassandraTemplate...");
+		log.info("Testing custom repository functionality...");
 		
-		cassTpl.selectAll(Customer.class).forEach(cus -> {
+		repository.findAll().forEach(cus -> {
 			log.info(cus.toString());
 		});
 
@@ -93,12 +86,12 @@ public class ApplicationTest {
 		log.info("Data size (record count): " + customers.size());
 
 		// Warm up
-		cassTpl.insert(generateRandomCustomers(10));
-		cassTpl.deleteAll(Customer.class);
+		repository.insert(generateRandomCustomers(10));
+		repository.deleteAll();
 
 		// Insert
 		sw.reset().start();
-		customerDAO.insert(customers);
+		repository.insert(customers);
 		sw.stop();
 		log.info("Time for inserting using ingest and row iterator: " + sw.elapsed(TimeUnit.MILLISECONDS) + " ms");
 	}
