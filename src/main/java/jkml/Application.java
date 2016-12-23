@@ -23,16 +23,16 @@ public class Application {
 		for (String beanName : beanNames) {
 			log.debug(beanName);
 		}
-		
-		CustomerRepository repo = ctx.getBean(CustomerRepository.class);
-		log.info("Create a single customer...");
+
+		UserRepository repo = ctx.getBean(UserRepository.class);
+		log.info("Create a single user...");
 		repo.deleteAll();
-		repo.save(new Customer(UUID.randomUUID(), "Bob", "Smith"));
-		log.info("Listing all customers:");
+		repo.save(new User(UUID.randomUUID(), "Bob", "Smith"));
+		log.info("Listing all users:");
 		repo.findAll().iterator().forEachRemaining(c -> {
 			log.info(c.toString());
 		});
-		
+
 		SpringApplication.exit(ctx);
 	}
 
