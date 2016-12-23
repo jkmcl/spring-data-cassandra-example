@@ -7,7 +7,6 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang3.RandomStringUtils;
 import org.cassandraunit.spring.CassandraDataSet;
-import org.cassandraunit.spring.CassandraUnitDependencyInjectionIntegrationTestExecutionListener;
 import org.cassandraunit.spring.EmbeddedCassandra;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -24,8 +23,8 @@ import com.google.common.base.Stopwatch;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
-@TestExecutionListeners(mergeMode = MergeMode.MERGE_WITH_DEFAULTS, listeners = CassandraUnitDependencyInjectionIntegrationTestExecutionListener.class)
-@CassandraDataSet(keyspace = "mykeyspace", value = { "ddl.cql" })
+@TestExecutionListeners(mergeMode=MergeMode.MERGE_WITH_DEFAULTS, listeners=MyCassandraUnitTestExecutionListener.class)
+@CassandraDataSet(keyspace="mykeyspace", value={ "ddl.cql" })
 @EmbeddedCassandra
 public class ApplicationTest {
 
@@ -37,7 +36,7 @@ public class ApplicationTest {
 	@Test
 	public void testRepository() throws Exception {
 		log.info("Testing repository...");
-		
+
 		repository.deleteAll();
 
 		// save a couple of customers
@@ -71,7 +70,7 @@ public class ApplicationTest {
 	@Test
 	public void testTemplate() throws Exception {
 		log.info("Testing custom repository functionality...");
-		
+
 		repository.findAll().forEach(cus -> {
 			log.info(cus.toString());
 		});
@@ -80,7 +79,7 @@ public class ApplicationTest {
 
 		// Generate customers
 		sw.reset().start();
-		List<Customer> customers = generateRandomCustomers(80000);
+		List<Customer> customers = generateRandomCustomers(100);
 		sw.stop();
 		log.info("Time for generating data: " + sw.elapsed(TimeUnit.MILLISECONDS) + " ms");
 		log.info("Data size (record count): " + customers.size());

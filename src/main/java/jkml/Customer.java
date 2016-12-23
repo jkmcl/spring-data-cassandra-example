@@ -6,15 +6,16 @@ import org.springframework.data.cassandra.mapping.Column;
 import org.springframework.data.cassandra.mapping.PrimaryKey;
 import org.springframework.data.cassandra.mapping.Table;
 
-@Table(value = "customer")
+@Table("customer")
 public class Customer {
-	@PrimaryKey(value = "id")
+
+	@PrimaryKey("id")
 	private UUID id;
 
-	@Column(value = "first_name")
+	@Column("first_name")
 	private String firstName;
 
-	@Column(value = "last_name")
+	@Column("last_name")
 	private String lastName;
 
 	public Customer() {
