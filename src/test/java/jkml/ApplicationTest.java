@@ -1,6 +1,6 @@
 package jkml;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertEquals;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -48,13 +48,13 @@ public class ApplicationTest {
 		userRepo.save(new User(UUID.randomUUID(), "Bob", "Smith"));
 
 		// Fetch all users
-		assertTrue(Iterables.size(userRepo.findAll()) == 2);
+		assertEquals(2, Iterables.size(userRepo.findAll()));
 
 		// Fetch users by first name
-		assertTrue(userRepo.findByFirstName("Alice").size() == 1);
+		assertEquals(1, userRepo.findByFirstName("Alice").size());
 
 		// Fetch users by last name
-		assertTrue(userRepo.findByLastName("Smith").size() == 2);
+		assertEquals(2, userRepo.findByLastName("Smith").size());
 	}
 
 	private static List<User> createRandomUsers(int count) {
@@ -82,7 +82,7 @@ public class ApplicationTest {
 		userRepo.ingest(users);
 		sw.stop();
 		log.info("Time for inserting using ingest and row iterator: " + sw.elapsed(TimeUnit.MILLISECONDS) + " ms");
-		assertTrue(Iterables.size(userRepo.findAll()) == userCount);
+		assertEquals(userCount, Iterables.size(userRepo.findAll()));
 	}
 
 }
