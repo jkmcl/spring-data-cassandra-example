@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS user (
-	id UUID, 
-	first_name TEXT, 
+	id UUID,
+	first_name TEXT,
 	last_name TEXT,
 	PRIMARY KEY (id)
 );

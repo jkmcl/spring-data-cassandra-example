@@ -82,6 +82,10 @@ public class ApplicationTest {
 		userRepo.ingest(users);
 		sw.stop();
 		log.info("Time for inserting using ingest and row iterator: " + sw.elapsed(TimeUnit.MILLISECONDS) + " ms");
+
+		// Wait for a short while for the records to be completely inserted in the background
+		Thread.sleep(3000);
+
 		assertEquals(userCount, Iterables.size(userRepo.findAll()));
 	}
 
