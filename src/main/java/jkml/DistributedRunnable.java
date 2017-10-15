@@ -14,14 +14,14 @@ public class DistributedRunnable implements Runnable {
 
 	private final Logger log = LoggerFactory.getLogger(DistributedRunnable.class);
 
-	protected final ScheduledTaskRepository scheduledTaskRepo;
+	protected final ScheduledTaskRepository taskRepo;
 
 	protected final String taskName;
 
 	protected final Runnable task;
 
-	public DistributedRunnable(ScheduledTaskRepository taskSyncRepo, String taskName, Runnable task) {
-		this.scheduledTaskRepo = taskSyncRepo;
+	public DistributedRunnable(ScheduledTaskRepository taskRepo, String taskName, Runnable task) {
+		this.taskRepo = taskRepo;
 		this.taskName = taskName;
 		this.task = task;
 	}
@@ -30,7 +30,7 @@ public class DistributedRunnable implements Runnable {
 	public void run() {
 		// Acquire lock
 		log.debug("Trying to acquire task lock: {}", taskName);
-		if (!scheduledTaskRepo.tryLock(taskName)) {
+		if (!taskRepo.tryLock(taskName)) {
 			log.debug("Unable to acquire task lock: {}", taskName);
 			return;
 		}
@@ -42,7 +42,7 @@ public class DistributedRunnable implements Runnable {
 		}
 		finally {
 			log.debug("Releasing task lock: {}", taskName);
-			scheduledTaskRepo.unlock(taskName);
+			taskRepo.unlock(taskName);
 		}
 
 	}

@@ -16,17 +16,17 @@ import com.datastax.driver.core.Session;
 
 public class ScheduledTaskRepositoryImpl implements ScheduledTaskRepositoryCustom {
 
-	private static final String UPDATE_CQL = "UPDATE scheduled_task SET locked = ?, lock_time = ? WHERE name = ? IF locked = ?";
+	private static final String GENERAL_UPDATE_QUERY = "UPDATE scheduled_task SET locked = ?, lock_time = ? WHERE name = ? IF locked = ?";
 
-	private static final String SELECT_CQL = "SELECT lock_time, max_lock_duration FROM scheduled_task WHERE name = ?";
+	private static final String SELECT_QUERY = "SELECT lock_time, max_lock_duration FROM scheduled_task WHERE name = ?";
 
-	private static final String QUERY_TO_UNLOCK = "UPDATE scheduled_task SET locked = false, lock_time = null WHERE name = ? IF locked = true AND lock_time = ?";
+	private static final String SPECIAL_UPDATE_QUERY = "UPDATE scheduled_task SET locked = false, lock_time = null WHERE name = ? IF locked = true AND lock_time = ?";
 
 	private final Logger log = LoggerFactory.getLogger(ScheduledTaskRepositoryImpl.class);
 
-	private PreparedStatement updateStmt;
+	private PreparedStatement generalUpdateStmt;
 	private PreparedStatement selectStmt;
-	private PreparedStatement updateStmt2;
+	private PreparedStatement specialUpdateStmt;
 
 	@Autowired
 	private CassandraOperations operations;
@@ -39,9 +39,9 @@ public class ScheduledTaskRepositoryImpl implements ScheduledTaskRepositoryCusto
 	@PostConstruct
 	public void init() {
 		Session session = operations.getSession();
-		updateStmt = prepare(session, UPDATE_CQL);
-		selectStmt = prepare(session, SELECT_CQL);
-		updateStmt2 = prepare(session, QUERY_TO_UNLOCK);
+		generalUpdateStmt = prepare(session, GENERAL_UPDATE_QUERY);
+		selectStmt = prepare(session, SELECT_QUERY);
+		specialUpdateStmt = prepare(session, SPECIAL_UPDATE_QUERY);
 	}
 
 	@Override
@@ -49,7 +49,7 @@ public class ScheduledTaskRepositoryImpl implements ScheduledTaskRepositoryCusto
 		Session session = operations.getSession();
 
 		// Try to acquire the lock and return if successful
-		if (session.execute(updateStmt.bind(true, new Date(), name, false)).wasApplied()) {
+		if (session.execute(generalUpdateStmt.bind(true, new Date(), name, false)).wasApplied()) {
 			return true;
 		}
 
@@ -65,20 +65,20 @@ public class ScheduledTaskRepositoryImpl implements ScheduledTaskRepositoryCusto
 
 		// Otherwise, release the lock and then try acquire again
 		log.info("Lock acquired at {} and held over {} seconds. Trying to release it: {}", lockTime, maxLockDuration, name);
-		if (session.execute(updateStmt2.bind(name, lockTime)).wasApplied()) {
+		if (session.execute(specialUpdateStmt.bind(name, lockTime)).wasApplied()) {
 			log.info("Lock released: {}", name);
 		}
 		else {
 			log.info("Lock not released: {}", name);
 		}
 
-		return session.execute(updateStmt.bind(true, new Date(), name, false)).wasApplied();
+		return session.execute(generalUpdateStmt.bind(true, new Date(), name, false)).wasApplied();
 	}
 
 	@Override
 	public void unlock(String name) {
 		Session session = operations.getSession();
-		if (!session.execute(updateStmt.bind(false, null, name, true)).wasApplied()) {
+		if (!session.execute(generalUpdateStmt.bind(false, null, name, true)).wasApplied()) {
 			throw new RuntimeException("Error releasing lock: " + name);
 		}
 	}
