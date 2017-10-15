@@ -13,30 +13,23 @@ import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.context.TestExecutionListeners.MergeMode;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import jkml.data.ScheduledTask;
-import jkml.data.ScheduledTaskRepository;
+import jkml.data.TaskLock;
+import jkml.data.TaskLockRepository;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
 @TestExecutionListeners(mergeMode=MergeMode.MERGE_WITH_DEFAULTS, listeners=CassandraUnitDependencyInjectionIntegrationTestExecutionListener.class)
 @CassandraDataSet(keyspace="mykeyspace", value={ "ddl.cql" })
 @EmbeddedCassandra
-public class DistributedRunnableTest {
+public class DistributedTaskTest {
 
-	private static final Logger log = LoggerFactory.getLogger(DistributedRunnableTest.class);
+	private final Logger log = LoggerFactory.getLogger(DistributedTaskTest.class);
 
 	@Autowired
-	private ScheduledTaskRepository taskRepo;
+	private TaskLockRepository taskLockRepo;
 
 	@Test
 	public void test() throws Exception {
-		log.info("Setting up a task in DB...");
-		ScheduledTask st = new ScheduledTask();
-		st.setName("MyTask");
-		st.setLocked(false);
-		st.setLockTime(null);
-		st.setMaxLockDuration(10);
-		taskRepo.save(st);
 
 		Runnable task = new Runnable() {
 			@Override
@@ -45,13 +38,21 @@ public class DistributedRunnableTest {
 			}
 		};
 
-		log.info("Run plain task");
+		log.info("Running plain task...");
 		task.run();
 
-		DistributedRunnable dr = new DistributedRunnable(taskRepo, "MyTask", task);
+		log.info("Creating task lock entity...");
+		String taskName = "MyTask";
+		TaskLock taskLock = new TaskLock();
+		taskLock.setName(taskName);
+		taskLock.setTimeout(10);
+		taskLockRepo.save(taskLock);
 
-		log.info("Run wrapped task");
-		dr.run();
+		log.info("Creating distributed task...");
+		DistributedTask distTask = new DistributedTask(taskLockRepo, taskName, task);
+
+		log.info("Running distributed task...");
+		distTask.run();
 	}
 
 }

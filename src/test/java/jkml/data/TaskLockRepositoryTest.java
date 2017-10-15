@@ -20,53 +20,57 @@ import org.springframework.test.context.junit4.SpringRunner;
 @TestExecutionListeners(mergeMode=MergeMode.MERGE_WITH_DEFAULTS, listeners=CassandraUnitDependencyInjectionIntegrationTestExecutionListener.class)
 @CassandraDataSet(keyspace="mykeyspace", value={ "ddl.cql" })
 @EmbeddedCassandra
-public class ScheduledTaskRepositoryTest {
+public class TaskLockRepositoryTest {
 
-	private static final Logger log = LoggerFactory.getLogger(ScheduledTaskRepositoryTest.class);
+	private final Logger log = LoggerFactory.getLogger(TaskLockRepositoryTest.class);
 
 	@Autowired
-	private ScheduledTaskRepository repo;
+	private TaskLockRepository repo;
 
-	private void logTask(String name) {
-		ScheduledTask st = repo.findOne(name);
-		log.info("Name: {}; Locked: {}; LockTime: {}; MaxLockDuration: {}", st.getName(), st.getLocked(), st.getLockTime(), st.getMaxLockDuration());
-	}
+	@Autowired
+	private RepoTestHelper testHelper;
 
 	@Test
 	public void test() throws Exception {
 
-		String taskName = "MyTask";
-		int maxLockDuration = 5;
+		String name = "MyTask";
+		int timeout = 5;
 
-		ScheduledTask st = new ScheduledTask();
-		st.setName(taskName);
-		st.setLocked(false);
-		st.setLockTime(null);
-		st.setMaxLockDuration(maxLockDuration);
-		repo.save(st);
+		log.info("Creating entity...");
+		TaskLock taskLock = new TaskLock();
+		taskLock.setName(name);
+		taskLock.setTimeout(timeout);
+		repo.save(taskLock);
+		testHelper.logTaskLockState(name);
 
 		// First lock attempt should succeed
-		assertEquals(true, repo.tryLock(taskName));
-		logTask(taskName);
+		log.info("Acquiring lock...");
+		assertEquals(true, repo.tryLock(name));
+		testHelper.logTaskLockState(name);
 
 		// Second attempt should fail since the lock has not been released
-		assertEquals(false, repo.tryLock(taskName));
-		logTask(taskName);
+		log.info("Acquiring lock...");
+		assertEquals(false, repo.tryLock(name));
+		testHelper.logTaskLockState(name);
 
 		// Release lock
-		repo.unlock(taskName);
-		logTask(taskName);
+		log.info("Releasing lock...");
+		repo.unlock(name);
+		testHelper.logTaskLockState(name);
 
 		// Third attempt should succeed
-		assertEquals(true, repo.tryLock(taskName));
-		logTask(taskName);
+		log.info("Acquiring lock...");
+		assertEquals(true, repo.tryLock(name));
+		testHelper.logTaskLockState(name);
 
 		// Wait beyond max lock time
-		Thread.sleep(maxLockDuration * 1000);
+		log.info("Sleep for {} seconds", timeout + 1);
+		Thread.sleep((timeout + 1) * 1000);
 
 		// Fourth attempt should succeed as the auto-unlock mechanism should kick in
-		assertEquals(true, repo.tryLock(taskName));
-		logTask(taskName);
+		log.info("Acquiring lock...");
+		assertEquals(true, repo.tryLock(name));
+		testHelper.logTaskLockState(name);
 	}
 
 }

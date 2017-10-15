@@ -3,25 +3,27 @@ package jkml;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import jkml.data.ScheduledTaskRepository;
+import jkml.data.TaskLockRepository;
 
 /**
  * This is a wrapper of {@link Runnable}. When the {@link Runnable#run()} method of the underlying {@link Runnable}
  * instance is executed by multiple concurrent threads, only one of the threads will be able to acquire the lock of the
  * task and allowed to execute the method.
+ * <p>Use case: multiple application instances schedule the same fixed-delay task to be started but only one instance
+ * of the task should run at any time.
  */
-public class DistributedRunnable implements Runnable {
+public class DistributedTask implements Runnable {
 
-	private final Logger log = LoggerFactory.getLogger(DistributedRunnable.class);
+	private final Logger log = LoggerFactory.getLogger(DistributedTask.class);
 
-	protected final ScheduledTaskRepository taskRepo;
+	protected final TaskLockRepository taskLockRepo;
 
 	protected final String taskName;
 
 	protected final Runnable task;
 
-	public DistributedRunnable(ScheduledTaskRepository taskRepo, String taskName, Runnable task) {
-		this.taskRepo = taskRepo;
+	public DistributedTask(TaskLockRepository taskLockRepo, String taskName, Runnable task) {
+		this.taskLockRepo = taskLockRepo;
 		this.taskName = taskName;
 		this.task = task;
 	}
@@ -30,7 +32,7 @@ public class DistributedRunnable implements Runnable {
 	public void run() {
 		// Acquire lock
 		log.debug("Trying to acquire task lock: {}", taskName);
-		if (!taskRepo.tryLock(taskName)) {
+		if (!taskLockRepo.tryLock(taskName)) {
 			log.debug("Unable to acquire task lock: {}", taskName);
 			return;
 		}
@@ -42,9 +44,8 @@ public class DistributedRunnable implements Runnable {
 		}
 		finally {
 			log.debug("Releasing task lock: {}", taskName);
-			taskRepo.unlock(taskName);
+			taskLockRepo.unlock(taskName);
 		}
-
 	}
 
 }

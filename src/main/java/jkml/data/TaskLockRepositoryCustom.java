@@ -1,6 +1,6 @@
 package jkml.data;
 
-public interface ScheduledTaskRepositoryCustom {
+public interface TaskLockRepositoryCustom {
 
 	public boolean tryLock(String name);
 

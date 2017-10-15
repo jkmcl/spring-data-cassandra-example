@@ -34,7 +34,7 @@ import jkml.data.UserRepository;
 @EmbeddedCassandra
 public class ApplicationTest {
 
-	private static final Logger log = LoggerFactory.getLogger(ApplicationTest.class);
+	private final Logger log = LoggerFactory.getLogger(ApplicationTest.class);
 
 	@Autowired
 	private UserRepository userRepo;

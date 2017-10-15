@@ -14,18 +14,26 @@ CREATE INDEX IF NOT EXISTS user_index0 ON user (first_name);
 CREATE INDEX IF NOT EXISTS user_index1 ON user (last_name);
 
 -- =============================================================================
--- Info for ensuring that a single application instance is executing the same 
--- task at any time
+-- Task locks
+-- =============================================================================
+CREATE TABLE IF NOT EXISTS task_lock (
+	name TEXT,
+	timeout INT,
+	acquired BOOLEAN,
+	acquire_ts TIMESTAMP,
+
+	PRIMARY KEY (name)
+);
+
+-- =============================================================================
+-- Scheduled tasks
 -- =============================================================================
 CREATE TABLE IF NOT EXISTS scheduled_task (
 	name TEXT,
-	locked BOOLEAN,
-	lock_time TIMESTAMP,
-	max_lock_duration INT,
-
 	cron_expression TEXT,
-	start_time TIMESTAMP,
-	max_drift_duration INT,	
+	max_ts_offset INT,
+	last_start_ts TIMESTAMP,
+	last_end_ts TIMESTAMP,
 
 	PRIMARY KEY (name)
 );

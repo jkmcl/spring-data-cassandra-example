@@ -12,23 +12,17 @@ public class ScheduledTask {
 	@PrimaryKey("name")
 	private String name;
 
-	@Column("locked")
-	private Boolean locked;
-
-	@Column("lock_time")
-	private Date lockTime;
-
-	@Column("max_lock_duration")
-	private Integer maxLockDuration;
-
 	@Column("cron_expression")
 	private String cronExpression;
 
-	@Column("start_time")
-	private Date startTime;
+	@Column("max_ts_offset")
+	private int maxTsOffset;
 
-	@Column("max_drift_duration")
-	private Integer maxDriftDuration;
+	@Column("last_start_ts")
+	private Date lastStartTs;
+
+	@Column("last_end_ts")
+	private Date lastEndTs;
 
 	public String getName() {
 		return name;
@@ -36,30 +30,6 @@ public class ScheduledTask {
 
 	public void setName(String name) {
 		this.name = name;
-	}
-
-	public Boolean getLocked() {
-		return locked;
-	}
-
-	public void setLocked(Boolean locked) {
-		this.locked = locked;
-	}
-
-	public Date getLockTime() {
-		return lockTime;
-	}
-
-	public void setLockTime(Date lockTime) {
-		this.lockTime = lockTime;
-	}
-
-	public Integer getMaxLockDuration() {
-		return maxLockDuration;
-	}
-
-	public void setMaxLockDuration(Integer maxLockDuration) {
-		this.maxLockDuration = maxLockDuration;
 	}
 
 	public String getCronExpression() {
@@ -70,20 +40,28 @@ public class ScheduledTask {
 		this.cronExpression = cronExpression;
 	}
 
-	public Date getStartTime() {
-		return startTime;
+	public int getMaxTsOffset() {
+		return maxTsOffset;
 	}
 
-	public void setStartTime(Date startTime) {
-		this.startTime = startTime;
+	public void setMaxTsOffset(int maxTsOffset) {
+		this.maxTsOffset = maxTsOffset;
 	}
 
-	public Integer getMaxDriftDuration() {
-		return maxDriftDuration;
+	public Date getLastStartTs() {
+		return lastStartTs;
 	}
 
-	public void setMaxDriftDuration(Integer maxDriftDuration) {
-		this.maxDriftDuration = maxDriftDuration;
+	public void setLastStartTs(Date lastStartTs) {
+		this.lastStartTs = lastStartTs;
+	}
+
+	public Date getLastEndTs() {
+		return lastEndTs;
+	}
+
+	public void setLastEndTs(Date lastEndTs) {
+		this.lastEndTs = lastEndTs;
 	}
 
 }

@@ -14,15 +14,15 @@ import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
 
-public class ScheduledTaskRepositoryImpl implements ScheduledTaskRepositoryCustom {
+public class TaskLockRepositoryImpl implements TaskLockRepositoryCustom {
 
-	private static final String GENERAL_UPDATE_QUERY = "UPDATE scheduled_task SET locked = ?, lock_time = ? WHERE name = ? IF locked = ?";
+	private static final String GENERAL_UPDATE_QUERY = "UPDATE task_lock SET acquired = ?, acquire_ts = ? WHERE name = ? IF acquired = ?";
 
-	private static final String SELECT_QUERY = "SELECT lock_time, max_lock_duration FROM scheduled_task WHERE name = ?";
+	private static final String SELECT_QUERY = "SELECT timeout, acquire_ts FROM task_lock WHERE name = ?";
 
-	private static final String SPECIAL_UPDATE_QUERY = "UPDATE scheduled_task SET locked = false, lock_time = null WHERE name = ? IF locked = true AND lock_time = ?";
+	private static final String SPECIAL_UPDATE_QUERY = "UPDATE task_lock SET acquired = false, acquire_ts = null WHERE name = ? IF acquired = true AND acquire_ts = ?";
 
-	private final Logger log = LoggerFactory.getLogger(ScheduledTaskRepositoryImpl.class);
+	private final Logger log = LoggerFactory.getLogger(TaskLockRepositoryImpl.class);
 
 	private PreparedStatement generalUpdateStmt;
 	private PreparedStatement selectStmt;
@@ -55,17 +55,17 @@ public class ScheduledTaskRepositoryImpl implements ScheduledTaskRepositoryCusto
 
 		// Check if the lock has been held beyond the max duration
 		Row row = session.execute(selectStmt.bind(name)).one();
-		Date lockTime = row.getTimestamp("lock_time");
-		int maxLockDuration = row.getInt("max_lock_duration");
+		int timeout = row.getInt("timeout");
+		Date acquireTs = row.getTimestamp("acquire_ts");
 
 		// If no, do nothing
-		if (!lockTime.toInstant().plusSeconds(maxLockDuration).isBefore(Instant.now())) {
+		if (!acquireTs.toInstant().plusSeconds(timeout).isBefore(Instant.now())) {
 			return false;
 		}
 
 		// Otherwise, release the lock and then try acquire again
-		log.info("Lock acquired at {} and held over {} seconds. Trying to release it: {}", lockTime, maxLockDuration, name);
-		if (session.execute(specialUpdateStmt.bind(name, lockTime)).wasApplied()) {
+		log.info("Lock acquired at {} and held over {} seconds. Trying to release it: {}", acquireTs.toInstant(), timeout, name);
+		if (session.execute(specialUpdateStmt.bind(name, acquireTs)).wasApplied()) {
 			log.info("Lock released: {}", name);
 		}
 		else {
