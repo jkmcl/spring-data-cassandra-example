@@ -38,16 +38,14 @@ public class ScheduledDistributedTask extends DistributedTask {
 	 * Check if this instance of the task has been started, i.e. within the offset of the last start time.
 	 */
 	private boolean isStarted(ScheduledTask schedTask) {
-		String name = schedTask.getName();
-
 		// Check if task was started previously
 		Date lastStartTs = schedTask.getLastStartTs();
 		if (lastStartTs == null) {
-			log.debug("Task ({}) was not started previously", name);
+			log.debug("Task ({}) was not started previously", taskName);
 			return false;
 		}
 
-		log.debug("Task ({}) was most recently started at {}", name, lastStartTs.toInstant());
+		log.debug("Task ({}) was most recently started at {}", taskName, lastStartTs.toInstant());
 
 		// Check if task was started a long time ago (more than the max offset)
 		long maxTsOffset = schedTask.getMaxTsOffset();
@@ -56,44 +54,29 @@ public class ScheduledDistributedTask extends DistributedTask {
 
 		if (offsetDuration.compareTo(maxOffsetDuration) > 0) {
 			log.debug("This instance of the task ({}) is considered not started as the most recent start time is more than {} seconds ago",
-					name, maxTsOffset);
+					taskName, maxTsOffset);
 			return false;
 		}
 
 		log.debug("This instance of the task ({}) is considered started as the most recent start time is less than or equal to {} seconds ago",
-				name, maxTsOffset);
+				taskName, maxTsOffset);
 		return true;
 	}
 
 	@Override
-	public void run() {
-		// Acquire lock
-		log.debug("Trying to acquire task lock: {}", taskName);
-		if (!taskLockRepo.tryLock(taskName)) {
-			log.debug("Unable to acquire task lock: {}", taskName);
+	public void executeTask() {
+		ScheduledTask schedTask = schedTaskRepo.findOne(taskName);
+		if (isStarted(schedTask)) {
+			log.debug("Skip task execution as it has already been started: {}", taskName);
 			return;
 		}
-
-		// Run underlying task and release lock when done
-		try {
-			log.debug("Acquired task lock: {}", taskName);
-			ScheduledTask schedTask = schedTaskRepo.findOne(taskName);
-			if (isStarted(schedTask)) {
-				log.debug("Skip task execution as it has already been started: {}", taskName);
-				return;
-			}
-			log.debug("Executing task: {}", taskName);
-			schedTask.setLastStartTs(new Date());
-			schedTask.setLastEndTs(null);
-			schedTask = schedTaskRepo.save(schedTask);
-			task.run();
-			schedTask.setLastEndTs(new Date());
-			schedTaskRepo.save(schedTask);
-		}
-		finally {
-			log.debug("Releasing task lock: {}", taskName);
-			taskLockRepo.unlock(taskName);
-		}
+		log.debug("Executing task: {}", taskName);
+		schedTask.setLastStartTs(new Date());
+		schedTask.setLastEndTs(null);
+		schedTask = schedTaskRepo.save(schedTask);
+		task.run();
+		schedTask.setLastEndTs(new Date());
+		schedTaskRepo.save(schedTask);
 	}
 
 }

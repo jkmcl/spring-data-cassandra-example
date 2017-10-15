@@ -16,7 +16,7 @@ public class DistributedTask implements Runnable {
 
 	private final Logger log = LoggerFactory.getLogger(DistributedTask.class);
 
-	protected final TaskLockRepository taskLockRepo;
+	private final TaskLockRepository taskLockRepo;
 
 	protected final String taskName;
 
@@ -26,6 +26,11 @@ public class DistributedTask implements Runnable {
 		this.taskLockRepo = taskLockRepo;
 		this.taskName = taskName;
 		this.task = task;
+	}
+
+	protected void executeTask() {
+		log.debug("Executing task: {}", taskName);
+		task.run();
 	}
 
 	@Override
@@ -39,8 +44,8 @@ public class DistributedTask implements Runnable {
 
 		// Run underlying task and release lock when done
 		try {
-			log.debug("Acquired task lock. Executing task: {}", taskName);
-			task.run();
+			log.debug("Acquired task lock: {}", taskName);
+			executeTask();
 		}
 		finally {
 			log.debug("Releasing task lock: {}", taskName);
