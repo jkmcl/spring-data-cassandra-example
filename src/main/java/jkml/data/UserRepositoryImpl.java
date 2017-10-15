@@ -1,4 +1,4 @@
-package jkml;
+package jkml.data;
 
 import java.util.Iterator;
 import java.util.List;

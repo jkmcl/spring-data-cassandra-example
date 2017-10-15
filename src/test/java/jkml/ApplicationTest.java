@@ -24,6 +24,9 @@ import org.springframework.test.context.junit4.SpringRunner;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.Iterables;
 
+import jkml.data.User;
+import jkml.data.UserRepository;
+
 @RunWith(SpringRunner.class)
 @SpringBootTest
 @TestExecutionListeners(mergeMode=MergeMode.MERGE_WITH_DEFAULTS, listeners=CassandraUnitDependencyInjectionIntegrationTestExecutionListener.class)
