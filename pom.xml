@@ -10,12 +10,12 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>1.5.7.RELEASE</version>
+		<version>1.5.8.RELEASE</version>
 	</parent>
 
 	<properties>
 		<java.version>1.8</java.version>
-		<cassandra-driver.version>3.3.0</cassandra-driver.version>
+		<cassandra-driver.version>3.3.2</cassandra-driver.version>
 		<cassandraunit.version>3.3.0.2</cassandraunit.version>
 	</properties>
 
@@ -37,6 +37,16 @@
 			<artifactId>cassandra-unit-spring</artifactId>
 			<version>${cassandraunit.version}</version>
 			<scope>test</scope>
+			<exclusions>
+				<exclusion>
+					<groupId>io.netty</groupId>
+					<artifactId>netty-handler</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>com.google.guava</groupId>
+					<artifactId>guava</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 
 	</dependencies>

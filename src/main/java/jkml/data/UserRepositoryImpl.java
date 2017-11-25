@@ -1,42 +1,68 @@
 package jkml.data;
 
-import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import javax.annotation.PostConstruct;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cassandra.core.RowIterator;
-import org.springframework.data.cassandra.core.CassandraTemplate;
+import org.springframework.cassandra.core.CqlOperations;
+
+import com.datastax.driver.core.HostDistance;
+import com.datastax.driver.core.PreparedStatement;
 
 public class UserRepositoryImpl implements UserRepositoryCustom {
 
-	private class UserRowIterator implements RowIterator {
+	private static final String INSERT_CQL = "INSERT INTO user (id, first_name, last_name) VALUES (?, ?, ?)";
 
-		private final Iterator<User> iterator;
-
-		public UserRowIterator(List<User> users) {
-			this.iterator = users.iterator();
-		}
-
-		@Override
-		public boolean hasNext() {
-			return iterator.hasNext();
-		}
-
-		@Override
-		public Object[] next() {
-			User c = iterator.next();
-			return new Object[] { c.getId(), c.getFirstName(), c.getLastName() };
-		}
-
-	}
+	private static PreparedStatement insertStmt;
 
 	@Autowired
-	private CassandraTemplate template;
+	private CqlOperations cqlOperations;
+
+	@PostConstruct
+	private void init() {
+		insertStmt = cqlOperations.getSession().prepare(INSERT_CQL);
+	}
 
 	@Override
 	public void ingest(List<User> users) {
-		String cql = "INSERT INTO user (id, first_name, last_name) VALUES (?, ?, ?)";
-		template.ingest(cql, new UserRowIterator(users));
+
+		AtomicBoolean hasError = new AtomicBoolean(false);
+
+		// Control number of in-flight async inserts using a semaphore
+		int numPermits = cqlOperations.getSession().getCluster().getConfiguration().getPoolingOptions().getMaxConnectionsPerHost(HostDistance.LOCAL);
+		Semaphore semaphore = new Semaphore(numPermits);
+
+		for (User user : users) {
+
+			if (hasError.get()) {
+				break;
+			}
+			semaphore.acquireUninterruptibly();
+			if (hasError.get()) {
+				semaphore.release();
+				break;
+			}
+
+			cqlOperations.executeAsynchronously(insertStmt.bind(user.getId(), user.getFirstName(), user.getLastName()), rsf -> {
+				try {
+					rsf.getUninterruptibly();
+				} catch (Exception e) {
+					hasError.set(true);
+				} finally {
+					semaphore.release();
+				}
+			});
+		}
+
+		semaphore.acquireUninterruptibly(numPermits);
+
+		if (hasError.get()) {
+			throw new RuntimeException("Error executing asynchronous insertion");
+		}
+
 	}
 
 }

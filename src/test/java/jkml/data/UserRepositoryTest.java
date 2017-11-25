@@ -24,9 +24,6 @@ import org.springframework.test.context.junit4.SpringRunner;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.Iterables;
 
-import jkml.data.User;
-import jkml.data.UserRepository;
-
 @RunWith(SpringRunner.class)
 @SpringBootTest
 @TestExecutionListeners(mergeMode=MergeMode.MERGE_WITH_DEFAULTS, listeners=CassandraUnitDependencyInjectionIntegrationTestExecutionListener.class)
@@ -84,7 +81,7 @@ public class UserRepositoryTest {
 		Stopwatch sw = Stopwatch.createStarted();
 		userRepo.ingest(users);
 		sw.stop();
-		log.info("Time for inserting using ingest and row iterator: " + sw.elapsed(TimeUnit.MILLISECONDS) + " ms");
+		log.info("Time for inserting using async insert: " + sw.elapsed(TimeUnit.MILLISECONDS) + " ms");
 
 		// Wait for a short while for the records to be completely inserted in the background
 		Thread.sleep(3000);
