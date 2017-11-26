@@ -6,6 +6,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.annotation.PostConstruct;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cassandra.core.CqlOperations;
 
@@ -18,11 +20,14 @@ public class UserRepositoryImpl implements UserRepositoryCustom {
 
 	private static PreparedStatement insertStmt;
 
+	private final Logger log = LoggerFactory.getLogger(UserRepositoryImpl.class);
+
 	@Autowired
 	private CqlOperations cqlOperations;
 
 	@PostConstruct
 	private void init() {
+		log.info("Creating prepared statement: {}", INSERT_CQL);
 		insertStmt = cqlOperations.getSession().prepare(INSERT_CQL);
 	}
 
@@ -37,9 +42,6 @@ public class UserRepositoryImpl implements UserRepositoryCustom {
 
 		for (User user : users) {
 
-			if (hasError.get()) {
-				break;
-			}
 			semaphore.acquireUninterruptibly();
 			if (hasError.get()) {
 				semaphore.release();
@@ -50,6 +52,7 @@ public class UserRepositoryImpl implements UserRepositoryCustom {
 				try {
 					rsf.getUninterruptibly();
 				} catch (Exception e) {
+					log.error("Error executing asynchronous insertion", e);
 					hasError.set(true);
 				} finally {
 					semaphore.release();
@@ -57,10 +60,11 @@ public class UserRepositoryImpl implements UserRepositoryCustom {
 			});
 		}
 
+		// Wait for all inserts to complete
 		semaphore.acquireUninterruptibly(numPermits);
 
 		if (hasError.get()) {
-			throw new RuntimeException("Error executing asynchronous insertion");
+			throw new RuntimeException("Error executing one or more asynchronous insertions");
 		}
 
 	}
