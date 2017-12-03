@@ -1,6 +1,7 @@
 package jkml.data;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 import org.cassandraunit.spring.CassandraDataSet;
 import org.cassandraunit.spring.CassandraUnitDependencyInjectionIntegrationTestExecutionListener;
@@ -45,22 +46,25 @@ public class TaskLockRepositoryTest {
 
 		// First lock attempt should succeed
 		log.info("Acquiring lock...");
-		assertEquals(true, repo.tryLock(name));
+		TaskLock taskLock1 = repo.tryLock(name);
+		assertNotNull(taskLock1.getOwner());
 		testHelper.logTaskLockState(name);
 
 		// Second attempt should fail since the lock has not been released
 		log.info("Acquiring lock...");
-		assertEquals(false, repo.tryLock(name));
+		TaskLock taskLock2 = repo.tryLock(name);
+		assertNull(taskLock2.getOwner());
 		testHelper.logTaskLockState(name);
 
 		// Release lock
 		log.info("Releasing lock...");
-		repo.unlock(name);
+		repo.unlock(taskLock1);
 		testHelper.logTaskLockState(name);
 
 		// Third attempt should succeed
 		log.info("Acquiring lock...");
-		assertEquals(true, repo.tryLock(name));
+		TaskLock taskLock3 = repo.tryLock(name);
+		assertNotNull(taskLock3.getOwner());
 		testHelper.logTaskLockState(name);
 
 		// Wait beyond max lock time
@@ -69,7 +73,8 @@ public class TaskLockRepositoryTest {
 
 		// Fourth attempt should succeed as the auto-unlock mechanism should kick in
 		log.info("Acquiring lock...");
-		assertEquals(true, repo.tryLock(name));
+		TaskLock taskLock4 = repo.tryLock(name);
+		assertNotNull(taskLock4.getOwner());
 		testHelper.logTaskLockState(name);
 	}
 

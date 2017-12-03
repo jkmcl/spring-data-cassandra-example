@@ -3,6 +3,7 @@ package jkml;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jkml.data.TaskLock;
 import jkml.data.TaskLockRepository;
 
 /**
@@ -37,7 +38,8 @@ public class DistributedTask implements Runnable {
 	public void run() {
 		// Acquire lock
 		log.debug("Trying to acquire task lock: {}", taskName);
-		if (!taskLockRepo.tryLock(taskName)) {
+		TaskLock lock = taskLockRepo.tryLock(taskName);
+		if (lock.getOwner() == null) {
 			log.debug("Unable to acquire task lock: {}", taskName);
 			return;
 		}
@@ -49,7 +51,7 @@ public class DistributedTask implements Runnable {
 		}
 		finally {
 			log.debug("Releasing task lock: {}", taskName);
-			taskLockRepo.unlock(taskName);
+			taskLockRepo.unlock(lock);
 		}
 	}
 

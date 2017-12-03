@@ -1,6 +1,7 @@
 package jkml.data;
 
 import java.util.Date;
+import java.util.UUID;
 
 import org.springframework.data.cassandra.mapping.Column;
 import org.springframework.data.cassandra.mapping.PrimaryKey;
@@ -15,8 +16,8 @@ public class TaskLock {
 	@Column("timeout")
 	private int timeout;
 
-	@Column("acquired")
-	private boolean acquired;
+	@Column("owner")
+	private UUID owner;
 
 	@Column("acquire_ts")
 	private Date acquireTs;
@@ -37,20 +38,20 @@ public class TaskLock {
 		this.timeout = timeout;
 	}
 
-	public boolean isAcquired() {
-		return acquired;
+	public UUID getOwner() {
+		return owner;
 	}
 
-	public void setAcquired(boolean acquired) {
-		this.acquired = acquired;
+	public void setOwner(UUID owner) {
+		this.owner = owner;
 	}
 
 	public Date getAcquireTs() {
 		return acquireTs;
 	}
 
-	public void setAcquireTs(Date acquisitionTs) {
-		this.acquireTs = acquisitionTs;
+	public void setAcquireTs(Date acquireTs) {
+		this.acquireTs = acquireTs;
 	}
 
 }

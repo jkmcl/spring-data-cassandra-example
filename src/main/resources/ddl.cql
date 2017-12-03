@@ -19,7 +19,7 @@ CREATE INDEX IF NOT EXISTS user_index1 ON user (last_name);
 CREATE TABLE IF NOT EXISTS task_lock (
 	name TEXT,
 	timeout INT,
-	acquired BOOLEAN,
+	owner UUID,
 	acquire_ts TIMESTAMP,
 
 	PRIMARY KEY (name)

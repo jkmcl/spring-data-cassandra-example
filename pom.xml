@@ -15,7 +15,7 @@
 
 	<properties>
 		<java.version>1.8</java.version>
-		<cassandra-driver.version>3.3.2</cassandra-driver.version>
+		<guava.version>19.0</guava.version>
 		<cassandraunit.version>3.3.0.2</cassandraunit.version>
 	</properties>
 
@@ -24,6 +24,17 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-data-cassandra</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>com.google.guava</groupId>
+			<artifactId>guava</artifactId>
+			<version>${guava.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.datastax.cassandra</groupId>
+			<artifactId>cassandra-driver-core</artifactId>
 		</dependency>
 
 		<dependency>
@@ -37,16 +48,6 @@
 			<artifactId>cassandra-unit-spring</artifactId>
 			<version>${cassandraunit.version}</version>
 			<scope>test</scope>
-			<exclusions>
-				<exclusion>
-					<groupId>io.netty</groupId>
-					<artifactId>netty-handler</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>com.google.guava</groupId>
-					<artifactId>guava</artifactId>
-				</exclusion>
-			</exclusions>
 		</dependency>
 
 	</dependencies>

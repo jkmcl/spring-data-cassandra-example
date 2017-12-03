@@ -2,6 +2,7 @@ package jkml.data;
 
 import java.time.Instant;
 import java.util.Date;
+import java.util.UUID;
 
 import javax.annotation.PostConstruct;
 
@@ -11,22 +12,25 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.cassandra.core.CassandraOperations;
 
 import com.datastax.driver.core.PreparedStatement;
+import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
+import com.datastax.driver.core.Statement;
+import com.datastax.driver.core.exceptions.WriteTimeoutException;
 
 public class TaskLockRepositoryImpl implements TaskLockRepositoryCustom {
 
-	private static final String GENERAL_UPDATE_QUERY = "UPDATE task_lock SET acquired = ?, acquire_ts = ? WHERE name = ? IF acquired = ?";
+	private static final String GENERAL_UPDATE_QUERY = "UPDATE task_lock SET owner = ?, acquire_ts = ? WHERE name = ? IF owner = ?";
 
-	private static final String SELECT_QUERY = "SELECT timeout, acquire_ts FROM task_lock WHERE name = ?";
+	private static final String SPECIAL_UPDATE_QUERY = "UPDATE task_lock SET owner = null, acquire_ts = null WHERE name = ? IF owner = ? AND acquire_ts = ?";
 
-	private static final String SPECIAL_UPDATE_QUERY = "UPDATE task_lock SET acquired = false, acquire_ts = null WHERE name = ? IF acquired = true AND acquire_ts = ?";
+	private static final String SELECT_QUERY = "SELECT owner, acquire_ts, timeout FROM task_lock WHERE name = ?";
 
 	private final Logger log = LoggerFactory.getLogger(TaskLockRepositoryImpl.class);
 
 	private PreparedStatement generalUpdateStmt;
-	private PreparedStatement selectStmt;
 	private PreparedStatement specialUpdateStmt;
+	private PreparedStatement selectStmt;
 
 	@Autowired
 	private CassandraOperations operations;
@@ -44,42 +48,70 @@ public class TaskLockRepositoryImpl implements TaskLockRepositoryCustom {
 		specialUpdateStmt = prepare(session, SPECIAL_UPDATE_QUERY);
 	}
 
-	@Override
-	public boolean tryLock(String name) {
-		Session session = operations.getSession();
+	private ResultSet executeWithoutWriteTimeout(Statement statement) {
+		do {
+			try {
+				return operations.getSession().execute(statement);
+			} catch (WriteTimeoutException e) {
+				log.info("Write timeout but will retry", e);
+			}
+		} while (true);
+	}
 
-		// Try to acquire the lock and return if successful
-		if (session.execute(generalUpdateStmt.bind(true, new Date(), name, false)).wasApplied()) {
-			return true;
+	/**
+	 * Check if the lock has been acquired beyond the timeout period. If yes, attempt to unlock it.
+	 * @return true if timeout occurred and unlock attempt has been made, false otherwise.
+	 */
+	private boolean timeoutElapsed(String name) {
+		Row row = operations.getSession().execute(selectStmt.bind(name)).one();
+		UUID owner = row.getUUID("owner");
+		Date acquireTs = row.getTimestamp("acquire_ts");
+		int timeout = row.getInt("timeout");
+
+		if (owner == null || acquireTs == null) {
+			return false;
 		}
 
-		// Check if the lock has been held beyond the max duration
-		Row row = session.execute(selectStmt.bind(name)).one();
-		int timeout = row.getInt("timeout");
-		Date acquireTs = row.getTimestamp("acquire_ts");
-
-		// If no, do nothing
 		if (!acquireTs.toInstant().plusSeconds(timeout).isBefore(Instant.now())) {
 			return false;
 		}
 
-		// Otherwise, release the lock and then try acquire again
+		// Attempt to release the lock
 		log.info("Lock acquired at {} and held over {} seconds. Trying to release it: {}", acquireTs.toInstant(), timeout, name);
-		if (session.execute(specialUpdateStmt.bind(name, acquireTs)).wasApplied()) {
+		if (executeWithoutWriteTimeout(specialUpdateStmt.bind(name, owner, acquireTs)).wasApplied()) {
 			log.info("Lock released: {}", name);
 		}
 		else {
 			log.info("Lock not released: {}", name);
 		}
-
-		return session.execute(generalUpdateStmt.bind(true, new Date(), name, false)).wasApplied();
+		return true;
 	}
 
 	@Override
-	public void unlock(String name) {
-		Session session = operations.getSession();
-		if (!session.execute(generalUpdateStmt.bind(false, null, name, true)).wasApplied()) {
-			throw new RuntimeException("Error releasing lock: " + name);
+	public TaskLock tryLock(String name) {
+		// Try to acquire the lock and return if successful
+		UUID owner = UUID.randomUUID();
+		TaskLock lock = new TaskLock();
+		lock.setName(name);
+		if (executeWithoutWriteTimeout(generalUpdateStmt.bind(owner, new Date(), name, null)).wasApplied()) {
+			lock.setOwner(owner);
+			return lock;
+		}
+
+		// Otherwise, check if the lock has been held beyond the timeout
+		if (!timeoutElapsed(name)) {
+			lock.setOwner(null);
+			return lock;
+		}
+
+		lock.setOwner(executeWithoutWriteTimeout(generalUpdateStmt.bind(owner, new Date(), name, null)).wasApplied() ? owner : null);
+		return lock;
+	}
+
+	@Override
+	public void unlock(TaskLock lock) {
+		if (!executeWithoutWriteTimeout(generalUpdateStmt.bind(null, null, lock.getName(), lock.getOwner())).wasApplied()) {
+			throw new RuntimeException("Error releasing lock: " + lock.getName() + "; owner: " + lock.getOwner());
 		}
 	}
 

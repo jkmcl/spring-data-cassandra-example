@@ -27,8 +27,8 @@ public class RepoTestHelper {
 
 	public void logTaskLockState(String name) {
 		TaskLock taskLock = repo.findOne(name);
-		log.info("Name: {}; Acquired: {}; AcquireTs: {}",
-				taskLock.getName(), taskLock.isAcquired(), formtTimestamp(taskLock.getAcquireTs()));
+		log.info("Name: {}; Owner: {}; AcquireTs: {}",
+				taskLock.getName(), taskLock.getOwner(), formtTimestamp(taskLock.getAcquireTs()));
 	}
 
 	public void logScheduledTaskState(String name) {
