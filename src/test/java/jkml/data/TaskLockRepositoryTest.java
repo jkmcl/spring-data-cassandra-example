@@ -47,13 +47,13 @@ public class TaskLockRepositoryTest {
 		// First lock attempt should succeed
 		log.info("Acquiring lock...");
 		TaskLock taskLock1 = repo.tryLock(name);
-		assertNotNull(taskLock1.getOwner());
+		assertNotNull(taskLock1);
 		testHelper.logTaskLockState(name);
 
 		// Second attempt should fail since the lock has not been released
 		log.info("Acquiring lock...");
 		TaskLock taskLock2 = repo.tryLock(name);
-		assertNull(taskLock2.getOwner());
+		assertNull(taskLock2);
 		testHelper.logTaskLockState(name);
 
 		// Release lock
@@ -64,7 +64,7 @@ public class TaskLockRepositoryTest {
 		// Third attempt should succeed
 		log.info("Acquiring lock...");
 		TaskLock taskLock3 = repo.tryLock(name);
-		assertNotNull(taskLock3.getOwner());
+		assertNotNull(taskLock3);
 		testHelper.logTaskLockState(name);
 
 		// Wait beyond max lock time
@@ -74,7 +74,12 @@ public class TaskLockRepositoryTest {
 		// Fourth attempt should succeed as the auto-unlock mechanism should kick in
 		log.info("Acquiring lock...");
 		TaskLock taskLock4 = repo.tryLock(name);
-		assertNotNull(taskLock4.getOwner());
+		assertNotNull(taskLock4);
+		testHelper.logTaskLockState(name);
+
+		// Release lock
+		log.info("Releasing lock...");
+		repo.unlock(taskLock4);
 		testHelper.logTaskLockState(name);
 	}
 

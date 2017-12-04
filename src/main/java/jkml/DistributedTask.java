@@ -39,7 +39,7 @@ public class DistributedTask implements Runnable {
 		// Acquire lock
 		log.debug("Trying to acquire task lock: {}", taskName);
 		TaskLock lock = taskLockRepo.tryLock(taskName);
-		if (lock.getOwner() == null) {
+		if (lock == null) {
 			log.debug("Unable to acquire task lock: {}", taskName);
 			return;
 		}

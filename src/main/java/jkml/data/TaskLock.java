@@ -22,6 +22,13 @@ public class TaskLock {
 	@Column("acquire_ts")
 	private Date acquireTs;
 
+	public TaskLock() {
+	}
+
+	public TaskLock(String name) {
+		this.name = name;
+	}
+
 	public String getName() {
 		return name;
 	}
