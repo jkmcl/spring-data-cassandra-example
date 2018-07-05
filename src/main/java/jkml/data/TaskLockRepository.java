@@ -1,6 +1,6 @@
 package jkml.data;
 
-import org.springframework.data.cassandra.repository.TypedIdCassandraRepository;
+import org.springframework.data.cassandra.repository.CassandraRepository;
 
-public interface TaskLockRepository extends TypedIdCassandraRepository<TaskLock, String>, TaskLockRepositoryCustom {
+public interface TaskLockRepository extends CassandraRepository<TaskLock, String>, TaskLockRepositoryCustom {
 }

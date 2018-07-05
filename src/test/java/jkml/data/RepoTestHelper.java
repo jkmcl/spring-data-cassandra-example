@@ -26,14 +26,14 @@ public class RepoTestHelper {
 	}
 
 	public void logTaskLockState(String name) {
-		TaskLock taskLock = repo.findOne(name);
+		TaskLock taskLock = repo.findById(name).get();
 		log.info("Name: {}; Owner: {}; AcquireTs: {}",
 				taskLock.getName(), taskLock.getOwner(), formtTimestamp(taskLock.getAcquireTs()));
 	}
 
 	public void logScheduledTaskState(String name) {
 		logTaskLockState(name);
-		ScheduledTask schedTask = schedTaskRepo.findOne(name);
+		ScheduledTask schedTask = schedTaskRepo.findById(name).get();
 		log.info("Name: {}; LastStartTs: {}; LastEndTs: {}",
 				schedTask.getName(), formtTimestamp(schedTask.getLastStartTs()), formtTimestamp(schedTask.getLastEndTs()));
 	}

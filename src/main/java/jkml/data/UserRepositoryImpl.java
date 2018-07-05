@@ -9,10 +9,11 @@ import javax.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cassandra.core.CqlOperations;
 
 import com.datastax.driver.core.HostDistance;
 import com.datastax.driver.core.PreparedStatement;
+import com.datastax.driver.core.ResultSetFuture;
+import com.datastax.driver.core.Session;
 
 public class UserRepositoryImpl implements UserRepositoryCustom {
 
@@ -23,12 +24,12 @@ public class UserRepositoryImpl implements UserRepositoryCustom {
 	private final Logger log = LoggerFactory.getLogger(UserRepositoryImpl.class);
 
 	@Autowired
-	private CqlOperations cqlOperations;
+	private Session session;
 
 	@PostConstruct
 	private void init() {
 		log.info("Creating prepared statement: {}", INSERT_CQL);
-		insertStmt = cqlOperations.getSession().prepare(INSERT_CQL);
+		insertStmt = session.prepare(INSERT_CQL);
 	}
 
 	@Override
@@ -37,7 +38,7 @@ public class UserRepositoryImpl implements UserRepositoryCustom {
 		AtomicBoolean hasError = new AtomicBoolean(false);
 
 		// Control number of in-flight async inserts using a semaphore
-		int numPermits = cqlOperations.getSession().getCluster().getConfiguration().getPoolingOptions().getMaxConnectionsPerHost(HostDistance.LOCAL);
+		int numPermits = session.getCluster().getConfiguration().getPoolingOptions().getMaxConnectionsPerHost(HostDistance.LOCAL);
 		Semaphore semaphore = new Semaphore(numPermits);
 
 		for (User user : users) {
@@ -48,16 +49,15 @@ public class UserRepositoryImpl implements UserRepositoryCustom {
 				break;
 			}
 
-			cqlOperations.executeAsynchronously(insertStmt.bind(user.getId(), user.getFirstName(), user.getLastName()), rsf -> {
-				try {
-					rsf.getUninterruptibly();
-				} catch (Exception e) {
-					log.error("Error executing asynchronous insertion", e);
-					hasError.set(true);
-				} finally {
-					semaphore.release();
-				}
-			});
+			ResultSetFuture rsf = session.executeAsync(insertStmt.bind(user.getId(), user.getFirstName(), user.getLastName()));
+			try {
+				rsf.getUninterruptibly();
+			} catch (Exception e) {
+				log.error("Error executing asynchronous insertion", e);
+				hasError.set(true);
+			} finally {
+				semaphore.release();
+			}
 		}
 
 		// Wait for all inserts to complete

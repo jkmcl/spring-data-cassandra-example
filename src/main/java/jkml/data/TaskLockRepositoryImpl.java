@@ -9,7 +9,6 @@ import javax.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.cassandra.core.CassandraOperations;
 
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.Row;
@@ -28,18 +27,17 @@ public class TaskLockRepositoryImpl implements TaskLockRepositoryCustom {
 	private PreparedStatement selectStmt;
 
 	@Autowired
-	private CassandraOperations operations;
+	private Session session;
 
-	private PreparedStatement prepare(Session session, String query) {
+	private PreparedStatement prepare(String query) {
 		log.info("Creating prepared statement: {}", query);
 		return session.prepare(query);
 	}
 
 	@PostConstruct
 	public void init() {
-		Session session = operations.getSession();
-		updateStmt = prepare(session, UPDATE_QUERY);
-		selectStmt = prepare(session, SELECT_QUERY);
+		updateStmt = prepare(UPDATE_QUERY);
+		selectStmt = prepare(SELECT_QUERY);
 	}
 
 	@Override
@@ -53,7 +51,7 @@ public class TaskLockRepositoryImpl implements TaskLockRepositoryCustom {
 		}
 
 		// If not successful, attempt to take over the lock only if it is still acquired by someone else and the timeout period has elapsed
-		Row row = operations.getSession().execute(selectStmt.bind(name)).one();
+		Row row = session.execute(selectStmt.bind(name)).one();
 		int timeout = row.getInt("timeout");
 		UUID currentOwner = row.getUUID("owner");
 		Date currentAcquireTs = row.getTimestamp("acquire_ts");
@@ -76,7 +74,7 @@ public class TaskLockRepositoryImpl implements TaskLockRepositoryCustom {
 		do {
 			try {
 				Date acquireTs = new Date();
-				if (!operations.getSession().execute(updateStmt.bind(nextOwner, acquireTs, name, currentOwner)).wasApplied()) {
+				if (!session.execute(updateStmt.bind(nextOwner, acquireTs, name, currentOwner)).wasApplied()) {
 					return null;
 				}
 				TaskLock lock = new TaskLock(name);
@@ -93,7 +91,7 @@ public class TaskLockRepositoryImpl implements TaskLockRepositoryCustom {
 	public void unlock(TaskLock lock) {
 		do {
 			try {
-				if (!operations.getSession().execute(updateStmt.bind(null, null, lock.getName(), lock.getOwner())).wasApplied()) {
+				if (!session.execute(updateStmt.bind(null, null, lock.getName(), lock.getOwner())).wasApplied()) {
 					throw new RuntimeException("Error releasing lock: " + lock.getName() + "; owner: " + lock.getOwner());
 				}
 				return;

@@ -1,6 +1,6 @@
 package jkml.data;
 
-import org.springframework.data.cassandra.repository.TypedIdCassandraRepository;
+import org.springframework.data.cassandra.repository.CassandraRepository;
 
-public interface ScheduledTaskRepository extends TypedIdCassandraRepository<ScheduledTask, String> {
+public interface ScheduledTaskRepository extends CassandraRepository<ScheduledTask, String> {
 }

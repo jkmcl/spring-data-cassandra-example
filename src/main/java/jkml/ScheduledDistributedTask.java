@@ -3,6 +3,7 @@ package jkml;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Date;
+import java.util.Optional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -65,7 +66,12 @@ public class ScheduledDistributedTask extends DistributedTask {
 
 	@Override
 	public void executeTask() {
-		ScheduledTask schedTask = schedTaskRepo.findOne(taskName);
+		Optional<ScheduledTask> optSchedTask = schedTaskRepo.findById(taskName);
+		if (!optSchedTask.isPresent()) {
+			log.error("Task configuration not found: {}", taskName);
+			return;
+		}
+		ScheduledTask schedTask = optSchedTask.get();
 		if (isStarted(schedTask)) {
 			log.debug("Skip task execution as it has already been started: {}", taskName);
 			return;
