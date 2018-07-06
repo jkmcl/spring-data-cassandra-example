@@ -16,7 +16,7 @@
 
 	<properties>
 		<java.version>1.8</java.version>
-		<cassandraunit.version>3.3.0.2</cassandraunit.version>
+		<cassandraunit.version>3.5.0.1</cassandraunit.version>
 	</properties>
 
 	<dependencies>

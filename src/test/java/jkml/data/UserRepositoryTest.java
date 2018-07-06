@@ -86,7 +86,7 @@ public class UserRepositoryTest {
 		// Wait for a short while for the records to be completely inserted in the background
 		Thread.sleep(3000);
 
-		assertEquals(userCount, Iterables.size(userRepo.findAll()));
+		assertEquals(userCount, userRepo.count());
 	}
 
 }
