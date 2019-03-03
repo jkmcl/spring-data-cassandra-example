@@ -1,6 +1,5 @@
 package jkml;
 
-import java.util.Arrays;
 import java.util.UUID;
 
 import org.slf4j.Logger;
@@ -19,13 +18,6 @@ public class Application {
 
 	public static void main(String[] args) {
 		ConfigurableApplicationContext ctx = SpringApplication.run(Application.class, args);
-
-		String[] beanNames = ctx.getBeanDefinitionNames();
-		Arrays.sort(beanNames);
-		log.debug("Beans loaded:");
-		for (String beanName : beanNames) {
-			log.debug(beanName);
-		}
 
 		UserRepository repo = ctx.getBean(UserRepository.class);
 		log.info("Create a single user...");
