@@ -65,7 +65,7 @@ public class ScheduledDistributedTask extends DistributedTask {
 	}
 
 	@Override
-	public void executeTask() {
+	protected void executeTask() {
 		Optional<ScheduledTask> optSchedTask = schedTaskRepo.findById(taskName);
 		if (!optSchedTask.isPresent()) {
 			log.error("Task configuration not found: {}", taskName);
