@@ -6,4 +6,6 @@ public interface TaskLockRepositoryCustom {
 
 	public void unlock(TaskLock lock);
 
+	public boolean isLockingEnabled();
+
 }

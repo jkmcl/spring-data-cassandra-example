@@ -50,10 +50,14 @@ public class TaskLockRepositoryTest {
 		assertNotNull(taskLock1);
 		testHelper.logTaskLockState(name);
 
-		// Second attempt should fail since the lock has not been released
+		// Second attempt should fail since the lock has not been released, unless task locking is disabled
 		log.info("Acquiring lock...");
 		TaskLock taskLock2 = repo.tryLock(name);
-		assertNull(taskLock2);
+		if (repo.isLockingEnabled()) {
+			assertNull(taskLock2);
+		} else {
+			assertNotNull(taskLock2);
+		}
 		testHelper.logTaskLockState(name);
 
 		// Release lock
