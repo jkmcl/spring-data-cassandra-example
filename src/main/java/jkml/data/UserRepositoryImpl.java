@@ -19,7 +19,7 @@ public class UserRepositoryImpl implements UserRepositoryCustom {
 
 	private static final String INSERT_CQL = "INSERT INTO user (id, first_name, last_name) VALUES (?, ?, ?)";
 
-	private static PreparedStatement insertStmt;
+	private PreparedStatement insertStmt;
 
 	private final Logger log = LoggerFactory.getLogger(UserRepositoryImpl.class);
 
