@@ -1,17 +1,20 @@
-package jkml;
+package jkml.scheduling;
+
+import static org.awaitility.Awaitility.await;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.time.Duration;
 
 import org.cassandraunit.spring.CassandraDataSet;
 import org.cassandraunit.spring.CassandraUnitDependencyInjectionIntegrationTestExecutionListener;
 import org.cassandraunit.spring.EmbeddedCassandra;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.context.TestExecutionListeners.MergeMode;
-import org.springframework.test.context.junit4.SpringRunner;
 
 import jkml.data.RepoTestHelper;
 import jkml.data.ScheduledTask;
@@ -19,14 +22,13 @@ import jkml.data.ScheduledTaskRepository;
 import jkml.data.TaskLock;
 import jkml.data.TaskLockRepository;
 
-@RunWith(SpringRunner.class)
 @SpringBootTest
 @TestExecutionListeners(mergeMode=MergeMode.MERGE_WITH_DEFAULTS, listeners=CassandraUnitDependencyInjectionIntegrationTestExecutionListener.class)
 @CassandraDataSet(keyspace="mykeyspace", value={ "ddl.cql" })
 @EmbeddedCassandra
-public class ScheduledDistributedTaskTest {
+class ScheduledDistributedTaskTests {
 
-	private final Logger log = LoggerFactory.getLogger(ScheduledDistributedTaskTest.class);
+	private final Logger log = LoggerFactory.getLogger(ScheduledDistributedTaskTests.class);
 
 	@Autowired
 	private TaskLockRepository taskLockRepo;
@@ -38,20 +40,9 @@ public class ScheduledDistributedTaskTest {
 	private RepoTestHelper testHelper;
 
 	@Test
-	public void test() throws Exception {
-
-		Runnable task = new Runnable() {
-			@Override
-			public void run() {
-				System.out.println("Hello world!");
-			}
-		};
-
-		log.info("Running plain task...");
-		task.run();
-
+	void test() throws Exception {
 		log.info("Creating task lock entity...");
-		String taskName = "MyTask";
+		String taskName = MyTask.class.getSimpleName();
 		TaskLock taskLock = new TaskLock();
 		taskLock.setName(taskName);
 		taskLock.setTimeout(10);
@@ -65,6 +56,7 @@ public class ScheduledDistributedTaskTest {
 		schedTaskRepo.save(schedTask);
 
 		log.info("Creating scheduled distributed task...");
+		MyTask task = new MyTask();
 		ScheduledDistributedTask distTask = new ScheduledDistributedTask(schedTaskRepo, taskLockRepo, taskName, task);
 
 		testHelper.logScheduledTaskState(taskName);
@@ -72,17 +64,19 @@ public class ScheduledDistributedTaskTest {
 		log.info("Running scheduled distributed task...");
 		distTask.run();
 		testHelper.logScheduledTaskState(taskName);
+		assertTrue(task.isExecuted());
+		task.setExecuted(false);
 
-		log.info("Running scheduled distributed task again...");
+		log.info("Running scheduled distributed task again immediately...");
 		distTask.run();
 		testHelper.logScheduledTaskState(taskName);
+		assertTrue(!task.isExecuted());
 
-		log.info("Sleep for {} seconds", maxTsOffset + 1);
-		Thread.sleep((maxTsOffset + 1) * 1000);
-
-		log.info("Running scheduled distributed task again...");
+		log.info("Running scheduled distributed task again after timeout period ...");
+		await().pollDelay(Duration.ofSeconds(maxTsOffset + 1)).until(() -> true);
 		distTask.run();
 		testHelper.logScheduledTaskState(taskName);
+		assertTrue(task.isExecuted());
 	}
 
 }

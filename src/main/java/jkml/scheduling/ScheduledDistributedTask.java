@@ -1,4 +1,4 @@
-package jkml;
+package jkml.scheduling;
 
 import java.time.Duration;
 import java.time.Instant;

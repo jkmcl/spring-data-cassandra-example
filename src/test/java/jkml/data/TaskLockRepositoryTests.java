@@ -1,29 +1,29 @@
 package jkml.data;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.awaitility.Awaitility.await;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+
+import java.time.Duration;
 
 import org.cassandraunit.spring.CassandraDataSet;
 import org.cassandraunit.spring.CassandraUnitDependencyInjectionIntegrationTestExecutionListener;
 import org.cassandraunit.spring.EmbeddedCassandra;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.context.TestExecutionListeners.MergeMode;
-import org.springframework.test.context.junit4.SpringRunner;
 
-@RunWith(SpringRunner.class)
 @SpringBootTest
 @TestExecutionListeners(mergeMode=MergeMode.MERGE_WITH_DEFAULTS, listeners=CassandraUnitDependencyInjectionIntegrationTestExecutionListener.class)
 @CassandraDataSet(keyspace="mykeyspace", value={ "ddl.cql" })
 @EmbeddedCassandra
-public class TaskLockRepositoryTest {
+class TaskLockRepositoryTests {
 
-	private final Logger log = LoggerFactory.getLogger(TaskLockRepositoryTest.class);
+	private final Logger log = LoggerFactory.getLogger(TaskLockRepositoryTests.class);
 
 	@Autowired
 	private TaskLockRepository repo;
@@ -32,7 +32,7 @@ public class TaskLockRepositoryTest {
 	private RepoTestHelper testHelper;
 
 	@Test
-	public void test() throws Exception {
+	void test() throws Exception {
 
 		String name = "MyTask";
 		int timeout = 5;
@@ -73,7 +73,7 @@ public class TaskLockRepositoryTest {
 
 		// Wait beyond max lock time
 		log.info("Sleep for {} seconds", timeout + 1);
-		Thread.sleep((timeout + 1) * 1000);
+		await().pollDelay(Duration.ofSeconds(timeout + 1)).until(() -> true);
 
 		// Fourth attempt should succeed as the auto-unlock mechanism should kick in
 		log.info("Acquiring lock...");

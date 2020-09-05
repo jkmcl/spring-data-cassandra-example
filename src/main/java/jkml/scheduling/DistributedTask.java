@@ -1,4 +1,4 @@
-package jkml;
+package jkml.scheduling;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
