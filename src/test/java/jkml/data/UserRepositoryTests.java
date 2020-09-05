@@ -22,9 +22,7 @@ import org.springframework.test.context.TestExecutionListeners.MergeMode;
 
 import com.google.common.base.Stopwatch;
 
-import jkml.Application;
-
-@SpringBootTest(classes = Application.class)
+@SpringBootTest
 @TestExecutionListeners(mergeMode=MergeMode.MERGE_WITH_DEFAULTS, listeners=CassandraUnitDependencyInjectionIntegrationTestExecutionListener.class)
 @CassandraDataSet(keyspace="mykeyspace", value={ "ddl.cql" })
 @EmbeddedCassandra
