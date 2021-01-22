@@ -8,9 +8,9 @@ import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import jkml.data.ScheduledTask;
-import jkml.data.ScheduledTaskRepository;
-import jkml.data.TaskLockRepository;
+import jkml.data.entity.ScheduledTask;
+import jkml.data.repository.ScheduledTaskRepository;
+import jkml.data.repository.TaskLockRepository;
 
 /**
  * This is a wrapper of {@link Runnable}. When the {@link Runnable#run()} method of the underlying {@link Runnable}

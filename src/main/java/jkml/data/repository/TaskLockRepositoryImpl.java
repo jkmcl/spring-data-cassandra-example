@@ -1,4 +1,4 @@
-package jkml.data;
+package jkml.data.repository;
 
 import java.time.Instant;
 import java.util.Date;
@@ -11,10 +11,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
-import com.datastax.driver.core.PreparedStatement;
-import com.datastax.driver.core.Row;
-import com.datastax.driver.core.Session;
-import com.datastax.driver.core.exceptions.WriteTimeoutException;
+import com.datastax.oss.driver.api.core.cql.PreparedStatement;
+import com.datastax.oss.driver.api.core.servererrors.WriteTimeoutException;
+import com.datastax.oss.driver.api.core.session.Session;
+
+import jkml.data.entity.TaskLock;
 
 public class TaskLockRepositoryImpl implements TaskLockRepositoryCustom {
 

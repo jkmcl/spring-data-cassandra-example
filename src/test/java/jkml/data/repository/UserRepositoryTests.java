@@ -1,10 +1,13 @@
-package jkml.data;
+package jkml.data.repository;
 
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -21,6 +24,8 @@ import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.context.TestExecutionListeners.MergeMode;
 
 import com.google.common.base.Stopwatch;
+
+import jkml.data.entity.User;
 
 @SpringBootTest
 @TestExecutionListeners(mergeMode=MergeMode.MERGE_WITH_DEFAULTS, listeners=CassandraUnitDependencyInjectionIntegrationTestExecutionListener.class)
@@ -88,6 +93,17 @@ class UserRepositoryTests {
 
 		// Wait for the records to be completely inserted in the background
 		await().until(() -> userRepo.count() == userCount);
+	}
+
+	@Test
+	void testInsertIfNotExists() throws Exception {
+		userRepo.deleteAll();
+		User user = new User(UUID.randomUUID(), "Bob", "Smith");
+
+		Optional<User> result = userRepo.insertIfNotExists(user);
+		assertTrue(result.isPresent());
+		result = userRepo.insertIfNotExists(user);
+		assertFalse(result.isPresent());
 	}
 
 }

@@ -1,4 +1,4 @@
-package jkml.data;
+package jkml.data.repository;
 
 import java.util.List;
 import java.util.concurrent.Semaphore;
@@ -10,10 +10,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.datastax.driver.core.HostDistance;
-import com.datastax.driver.core.PreparedStatement;
-import com.datastax.driver.core.ResultSetFuture;
-import com.datastax.driver.core.Session;
+import com.datastax.oss.driver.api.core.cql.PreparedStatement;
+import com.datastax.oss.driver.api.core.session.Session;
+
+import jkml.data.entity.User;
 
 public class UserRepositoryImpl implements UserRepositoryCustom {
 
