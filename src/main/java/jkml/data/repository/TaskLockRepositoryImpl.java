@@ -11,9 +11,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
+import com.datastax.oss.driver.api.core.CqlSession;
 import com.datastax.oss.driver.api.core.cql.PreparedStatement;
+import com.datastax.oss.driver.api.core.cql.Row;
 import com.datastax.oss.driver.api.core.servererrors.WriteTimeoutException;
-import com.datastax.oss.driver.api.core.session.Session;
 
 import jkml.data.entity.TaskLock;
 
@@ -31,7 +32,7 @@ public class TaskLockRepositoryImpl implements TaskLockRepositoryCustom {
 	private PreparedStatement selectStmt;
 
 	@Autowired
-	private Session session;
+	private CqlSession session;
 
 	@Value("${app.lockingEnabled:true}")
 	private boolean lockingEnabled;
@@ -61,18 +62,18 @@ public class TaskLockRepositoryImpl implements TaskLockRepositoryCustom {
 		// If not successful, attempt to take over the lock only if it is still acquired by someone else and the timeout period has elapsed
 		Row row = session.execute(selectStmt.bind(name)).one();
 		int timeout = row.getInt("timeout");
-		UUID currentOwner = row.getUUID("owner");
-		Date currentAcquireTs = row.getTimestamp("acquire_ts");
+		UUID currentOwner = row.getUuid("owner");
+		Instant currentAcquireTs = row.getInstant("acquire_ts");
 
 		if (currentOwner == null || currentAcquireTs == null) {
 			return null;
 		}
 
-		if (!currentAcquireTs.toInstant().plusSeconds(timeout).isBefore(Instant.now())) {
+		if (!currentAcquireTs.plusSeconds(timeout).isBefore(Instant.now())) {
 			return null;
 		}
 
-		log.info("Trying to take over lock acquired at {} over {} seconds ago: {}", currentAcquireTs.toInstant(), timeout, name);
+		log.info("Trying to take over lock acquired at {} over {} seconds ago: {}", currentAcquireTs, timeout, name);
 		lock = tryLock(name, owner, currentOwner);
 		log.info("Takeover of lock was {}: {}", lock == null ? "unsuccessful" : "successful", name);
 		return lock;
@@ -81,7 +82,7 @@ public class TaskLockRepositoryImpl implements TaskLockRepositoryCustom {
 	private TaskLock tryLock(String name, UUID nextOwner, UUID currentOwner) {
 		do {
 			try {
-				Date acquireTs = new Date();
+				Instant acquireTs = Instant.now();
 				if (lockingEnabled && !session.execute(updateStmt.bind(nextOwner, acquireTs, name, currentOwner)).wasApplied()) {
 					return null;
 				} else if (!lockingEnabled) {
@@ -89,7 +90,7 @@ public class TaskLockRepositoryImpl implements TaskLockRepositoryCustom {
 				}
 				TaskLock lock = new TaskLock(name);
 				lock.setOwner(nextOwner);
-				lock.setAcquireTs(acquireTs);
+				lock.setAcquireTs(Date.from(acquireTs));
 				return lock;
 			} catch (WriteTimeoutException e) {
 				log.info("Write timeout during lock acquisition. Retyring...", e);

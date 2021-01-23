@@ -1,6 +1,7 @@
 package jkml.data.repository;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -10,8 +11,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.datastax.oss.driver.api.core.CqlSession;
+import com.datastax.oss.driver.api.core.cql.AsyncResultSet;
 import com.datastax.oss.driver.api.core.cql.PreparedStatement;
-import com.datastax.oss.driver.api.core.session.Session;
 
 import jkml.data.entity.User;
 
@@ -24,7 +26,7 @@ public class UserRepositoryImpl implements UserRepositoryCustom {
 	private final Logger log = LoggerFactory.getLogger(UserRepositoryImpl.class);
 
 	@Autowired
-	private Session session;
+	private CqlSession session;
 
 	@PostConstruct
 	private void init() {
@@ -38,7 +40,7 @@ public class UserRepositoryImpl implements UserRepositoryCustom {
 		AtomicBoolean hasError = new AtomicBoolean(false);
 
 		// Control number of in-flight async inserts using a semaphore
-		int numPermits = session.getCluster().getConfiguration().getPoolingOptions().getMaxConnectionsPerHost(HostDistance.LOCAL);
+		int numPermits = 8; // Value of PoolingOptions.DEFAULT_MAX_POOL_LOCAL in old driver
 		Semaphore semaphore = new Semaphore(numPermits);
 
 		for (User user : users) {
@@ -48,10 +50,9 @@ public class UserRepositoryImpl implements UserRepositoryCustom {
 				semaphore.release();
 				break;
 			}
-
-			ResultSetFuture rsf = session.executeAsync(insertStmt.bind(user.getId(), user.getFirstName(), user.getLastName()));
+			CompletableFuture<AsyncResultSet> rsf = session.executeAsync(insertStmt.bind(user.getId(), user.getFirstName(), user.getLastName())).toCompletableFuture();
 			try {
-				rsf.getUninterruptibly();
+				rsf.join();
 			} catch (Exception e) {
 				log.error("Error executing asynchronous insertion", e);
 				hasError.set(true);
