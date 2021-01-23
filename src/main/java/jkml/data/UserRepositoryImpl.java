@@ -14,6 +14,7 @@ import com.datastax.driver.core.HostDistance;
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ResultSetFuture;
 import com.datastax.driver.core.Session;
+import com.google.common.util.concurrent.MoreExecutors;
 
 public class UserRepositoryImpl implements UserRepositoryCustom {
 
@@ -50,14 +51,17 @@ public class UserRepositoryImpl implements UserRepositoryCustom {
 			}
 
 			ResultSetFuture rsf = session.executeAsync(insertStmt.bind(user.getId(), user.getFirstName(), user.getLastName()));
-			try {
-				rsf.getUninterruptibly();
-			} catch (Exception e) {
-				log.error("Error executing asynchronous insertion", e);
-				hasError.set(true);
-			} finally {
-				semaphore.release();
-			}
+
+			rsf.addListener(() -> {
+				try {
+					rsf.get();
+				} catch (Exception e) {
+					log.error("Error executing asynchronous insertion", e);
+					hasError.set(true);
+				} finally {
+					semaphore.release();
+				}
+			}, MoreExecutors.directExecutor());
 		}
 
 		// Wait for all inserts to complete
