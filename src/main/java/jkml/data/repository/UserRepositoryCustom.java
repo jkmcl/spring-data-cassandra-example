@@ -6,6 +6,6 @@ import jkml.data.entity.User;
 
 public interface UserRepositoryCustom {
 
-	public void ingest(List<User> users);
+	void ingest(List<User> users);
 
 }

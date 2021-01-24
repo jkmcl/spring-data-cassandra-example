@@ -11,9 +11,9 @@ import jkml.data.entity.User;
 public interface UserRepository extends CassandraRepository<User, UUID>, UserRepositoryCustom {
 
 	@Query("SELECT * FROM user WHERE first_name=?0")
-	public List<User> findByFirstName(String firstName);
+	List<User> findByFirstName(String firstName);
 
 	@Query("SELECT * FROM user WHERE last_name=?0")
-	public List<User> findByLastName(String lastName);
+	List<User> findByLastName(String lastName);
 
 }
