@@ -14,14 +14,12 @@ import jkml.data.entity.User;
 
 public class UserRepositoryImpl implements UserRepositoryCustom {
 
-	private static final int DEFAULT_PERMITS = 1024; // DataStax driver's default max number of concurrent requests per connection
+	private static final int PERMITS = 1024; // DataStax driver's default max number of concurrent requests per connection
 
 	private final Logger log = LoggerFactory.getLogger(UserRepositoryImpl.class);
 
 	@Autowired
 	private AsyncCassandraOperations operations;
-
-	private int permits = DEFAULT_PERMITS;
 
 	@Override
 	public void ingest(List<User> users) {
@@ -29,7 +27,7 @@ public class UserRepositoryImpl implements UserRepositoryCustom {
 		AtomicBoolean hasError = new AtomicBoolean(false);
 
 		// Control number of in-flight async inserts using a semaphore
-		Semaphore semaphore = new Semaphore(permits);
+		Semaphore semaphore = new Semaphore(PERMITS);
 
 		for (User user : users) {
 
@@ -63,7 +61,7 @@ public class UserRepositoryImpl implements UserRepositoryCustom {
 		}
 
 		// Wait for all inserts to complete
-		semaphore.acquireUninterruptibly(permits);
+		semaphore.acquireUninterruptibly(PERMITS);
 
 		if (hasError.get()) {
 			throw new RuntimeException("Error executing one or more asynchronous insertions");
