@@ -14,6 +14,10 @@ import jkml.data.repository.support.CustomCassandraRepositoryImpl;
 @EnableCassandraRepositories(repositoryBaseClass = CustomCassandraRepositoryImpl.class, basePackageClasses = PackageMarker.class)
 public class CassandraConfiguration {
 
+	/**
+	 * Based on
+	 * https://github.com/spring-projects/spring-boot/blob/2.3.x/spring-boot-project/spring-boot-autoconfigure/src/main/java/org/springframework/boot/autoconfigure/data/cassandra/CassandraDataAutoConfiguration.java
+	 */
 	@Bean
 	public AsyncCassandraTemplate asyncCassandraTemplate(SessionFactory sessionFactory, CassandraConverter converter) {
 		return new AsyncCassandraTemplate(sessionFactory, converter);

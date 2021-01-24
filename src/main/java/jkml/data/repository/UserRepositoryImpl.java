@@ -58,6 +58,7 @@ public class UserRepositoryImpl implements UserRepositoryCustom {
 				hasError.set(true);
 				semaphore.release();
 			}
+
 		}
 
 		// Wait for all inserts to complete
