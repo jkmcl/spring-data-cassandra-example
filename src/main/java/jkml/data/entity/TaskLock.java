@@ -1,4 +1,4 @@
-package jkml.data;
+package jkml.data.entity;
 
 import java.util.Date;
 import java.util.UUID;

@@ -1,4 +1,4 @@
-package jkml.data;
+package jkml.data.repository;
 
 import java.time.Instant;
 import java.util.Date;
@@ -15,6 +15,8 @@ import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
 import com.datastax.driver.core.exceptions.WriteTimeoutException;
+
+import jkml.data.entity.TaskLock;
 
 public class TaskLockRepositoryImpl implements TaskLockRepositoryCustom {
 

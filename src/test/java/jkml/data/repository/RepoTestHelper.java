@@ -1,4 +1,4 @@
-package jkml.data;
+package jkml.data.repository;
 
 import java.util.Date;
 
@@ -6,6 +6,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import jkml.data.entity.ScheduledTask;
+import jkml.data.entity.TaskLock;
 
 @Component
 public class RepoTestHelper {

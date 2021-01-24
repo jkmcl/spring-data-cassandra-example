@@ -1,4 +1,6 @@
-package jkml.data;
+package jkml.data.repository;
+
+import jkml.data.entity.TaskLock;
 
 public interface TaskLockRepositoryCustom {
 

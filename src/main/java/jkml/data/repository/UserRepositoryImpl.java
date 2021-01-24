@@ -1,4 +1,4 @@
-package jkml.data;
+package jkml.data.repository;
 
 import java.util.List;
 import java.util.concurrent.Semaphore;
@@ -9,28 +9,29 @@ import javax.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.cassandra.core.AsyncCassandraOperations;
+import org.springframework.util.concurrent.ListenableFutureCallback;
 
 import com.datastax.driver.core.HostDistance;
-import com.datastax.driver.core.PreparedStatement;
-import com.datastax.driver.core.ResultSetFuture;
 import com.datastax.driver.core.Session;
-import com.google.common.util.concurrent.MoreExecutors;
+
+import jkml.data.entity.User;
 
 public class UserRepositoryImpl implements UserRepositoryCustom {
-
-	private static final String INSERT_CQL = "INSERT INTO user (id, first_name, last_name) VALUES (?, ?, ?)";
-
-	private PreparedStatement insertStmt;
 
 	private final Logger log = LoggerFactory.getLogger(UserRepositoryImpl.class);
 
 	@Autowired
 	private Session session;
 
+	@Autowired
+	private AsyncCassandraOperations operations;
+
+	private int numPermits = 1024;
+
 	@PostConstruct
-	private void init() {
-		log.info("Creating prepared statement: {}", INSERT_CQL);
-		insertStmt = session.prepare(INSERT_CQL);
+	public void init() {
+		numPermits = session.getCluster().getConfiguration().getPoolingOptions().getMaxRequestsPerConnection(HostDistance.LOCAL);
 	}
 
 	@Override
@@ -39,7 +40,6 @@ public class UserRepositoryImpl implements UserRepositoryCustom {
 		AtomicBoolean hasError = new AtomicBoolean(false);
 
 		// Control number of in-flight async inserts using a semaphore
-		int numPermits = session.getCluster().getConfiguration().getPoolingOptions().getMaxConnectionsPerHost(HostDistance.LOCAL);
 		Semaphore semaphore = new Semaphore(numPermits);
 
 		for (User user : users) {
@@ -50,18 +50,28 @@ public class UserRepositoryImpl implements UserRepositoryCustom {
 				break;
 			}
 
-			ResultSetFuture rsf = session.executeAsync(insertStmt.bind(user.getId(), user.getFirstName(), user.getLastName()));
+			try {
+				operations.insert(user).addCallback(new ListenableFutureCallback<User>() {
 
-			rsf.addListener(() -> {
-				try {
-					rsf.get();
-				} catch (Exception e) {
-					log.error("Error executing asynchronous insertion", e);
-					hasError.set(true);
-				} finally {
-					semaphore.release();
-				}
-			}, MoreExecutors.directExecutor());
+					@Override
+					public void onSuccess(User result) {
+						semaphore.release();
+					}
+
+					@Override
+					public void onFailure(Throwable ex) {
+						log.error("Error executing asynchronous insertion", ex);
+						hasError.set(true);
+						semaphore.release();
+					}
+
+				});
+			} catch (Exception e) {
+				log.error("Error initiating asynchronous insertion", e);
+				hasError.set(true);
+				semaphore.release();
+			}
+
 		}
 
 		// Wait for all inserts to complete

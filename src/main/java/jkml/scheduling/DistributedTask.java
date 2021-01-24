@@ -3,8 +3,8 @@ package jkml.scheduling;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import jkml.data.TaskLock;
-import jkml.data.TaskLockRepository;
+import jkml.data.entity.TaskLock;
+import jkml.data.repository.TaskLockRepository;
 
 /**
  * This is a wrapper of {@link Runnable}. When the {@link Runnable#run()} method of the underlying {@link Runnable}
