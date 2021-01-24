@@ -14,10 +14,14 @@ import jkml.data.entity.User;
 
 public class UserRepositoryImpl implements UserRepositoryCustom {
 
+	private static final int DEFAULT_PERMITS = 1024; // DataStax driver's default max number of concurrent requests per connection
+
 	private final Logger log = LoggerFactory.getLogger(UserRepositoryImpl.class);
 
 	@Autowired
 	private AsyncCassandraOperations operations;
+
+	private int permits = DEFAULT_PERMITS;
 
 	@Override
 	public void ingest(List<User> users) {
@@ -25,8 +29,7 @@ public class UserRepositoryImpl implements UserRepositoryCustom {
 		AtomicBoolean hasError = new AtomicBoolean(false);
 
 		// Control number of in-flight async inserts using a semaphore
-		int numPermits = 1024; // Default per connection current request limit in DataStax driver
-		Semaphore semaphore = new Semaphore(numPermits);
+		Semaphore semaphore = new Semaphore(permits);
 
 		for (User user : users) {
 
@@ -36,26 +39,31 @@ public class UserRepositoryImpl implements UserRepositoryCustom {
 				break;
 			}
 
-			operations.insert(user).addCallback(new ListenableFutureCallback<User>() {
+			try {
+				operations.insert(user).addCallback(new ListenableFutureCallback<User>() {
 
-				@Override
-				public void onSuccess(User result) {
-					log.debug("Where am I?");
-					semaphore.release();
-				}
+					@Override
+					public void onSuccess(User result) {
+						semaphore.release();
+					}
 
-				@Override
-				public void onFailure(Throwable ex) {
-					log.error("Error executing asynchronous insertion", ex);
-					hasError.set(false);
-					semaphore.release();
-				}
+					@Override
+					public void onFailure(Throwable ex) {
+						log.error("Error executing asynchronous insertion", ex);
+						hasError.set(true);
+						semaphore.release();
+					}
 
-			});
+				});
+			} catch (Exception e) {
+				log.error("Error initiating asynchronous insertion", e);
+				hasError.set(true);
+				semaphore.release();
+			}
 		}
 
 		// Wait for all inserts to complete
-		semaphore.acquireUninterruptibly(numPermits);
+		semaphore.acquireUninterruptibly(permits);
 
 		if (hasError.get()) {
 			throw new RuntimeException("Error executing one or more asynchronous insertions");
