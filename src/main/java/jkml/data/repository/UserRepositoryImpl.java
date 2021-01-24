@@ -4,35 +4,22 @@ import java.util.List;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import javax.annotation.PostConstruct;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.cassandra.core.AsyncCassandraOperations;
 import org.springframework.util.concurrent.ListenableFutureCallback;
 
-import com.datastax.driver.core.HostDistance;
-import com.datastax.driver.core.Session;
-
 import jkml.data.entity.User;
 
 public class UserRepositoryImpl implements UserRepositoryCustom {
 
+	private static final int PERMITS = 1024; // DataStax driver's default max number of concurrent requests per connection
+
 	private final Logger log = LoggerFactory.getLogger(UserRepositoryImpl.class);
 
 	@Autowired
-	private Session session;
-
-	@Autowired
 	private AsyncCassandraOperations operations;
-
-	private int numPermits = 1024;
-
-	@PostConstruct
-	public void init() {
-		numPermits = session.getCluster().getConfiguration().getPoolingOptions().getMaxRequestsPerConnection(HostDistance.LOCAL);
-	}
 
 	@Override
 	public void ingest(List<User> users) {
@@ -40,7 +27,7 @@ public class UserRepositoryImpl implements UserRepositoryCustom {
 		AtomicBoolean hasError = new AtomicBoolean(false);
 
 		// Control number of in-flight async inserts using a semaphore
-		Semaphore semaphore = new Semaphore(numPermits);
+		Semaphore semaphore = new Semaphore(PERMITS);
 
 		for (User user : users) {
 
@@ -75,7 +62,7 @@ public class UserRepositoryImpl implements UserRepositoryCustom {
 		}
 
 		// Wait for all inserts to complete
-		semaphore.acquireUninterruptibly(numPermits);
+		semaphore.acquireUninterruptibly(PERMITS);
 
 		if (hasError.get()) {
 			throw new RuntimeException("Error executing one or more asynchronous insertions");
