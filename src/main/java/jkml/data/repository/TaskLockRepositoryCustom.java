@@ -8,6 +8,4 @@ public interface TaskLockRepositoryCustom {
 
 	void unlock(TaskLock lock);
 
-	boolean isLockingEnabled();
-
 }

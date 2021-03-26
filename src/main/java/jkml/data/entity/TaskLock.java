@@ -1,6 +1,6 @@
 package jkml.data.entity;
 
-import java.util.Date;
+import java.time.Instant;
 import java.util.UUID;
 
 import org.springframework.data.cassandra.core.mapping.Column;
@@ -20,7 +20,7 @@ public class TaskLock {
 	private UUID owner;
 
 	@Column("acquire_ts")
-	private Date acquireTs;
+	private Instant acquireTs;
 
 	public TaskLock() {
 	}
@@ -53,11 +53,11 @@ public class TaskLock {
 		this.owner = owner;
 	}
 
-	public Date getAcquireTs() {
+	public Instant getAcquireTs() {
 		return acquireTs;
 	}
 
-	public void setAcquireTs(Date acquireTs) {
+	public void setAcquireTs(Instant acquireTs) {
 		this.acquireTs = acquireTs;
 	}
 
