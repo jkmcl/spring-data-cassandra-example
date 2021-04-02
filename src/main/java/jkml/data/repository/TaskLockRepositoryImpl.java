@@ -89,23 +89,44 @@ public class TaskLockRepositoryImpl implements TaskLockRepositoryCustom {
 		return null;
 	}
 
+	private Instant isOwner(String name, UUID owner) {
+		Row row = session.execute(selectStmt.bind(name)).one();
+		UUID actualOwner = row.getUuid(OWNER_COLUMN);
+		return (actualOwner != null && actualOwner.equals(owner)) ? row.getInstant(ACQUIRE_TS_COLUMN) : null;
+	}
+
+	private boolean isNotOwner(String name, UUID owner) {
+		UUID actualOwner = session.execute(selectStmt.bind(name)).one().getUuid(OWNER_COLUMN);
+		return actualOwner == null || !actualOwner.equals(owner);
+	}
+
 	private Instant tryLock(String name, UUID nextOwner, UUID currentOwner) {
+		boolean retry = false;
 		do {
 			Instant acquireTs = Instant.now();
 			try {
-				return session.execute(updateStmt.bind(nextOwner, acquireTs, name, currentOwner)).wasApplied()
-						? acquireTs
-						: null;
+				if (session.execute(updateStmt.bind(nextOwner, acquireTs, name, currentOwner)).wasApplied()) {
+					return acquireTs;
+				}
+
+				// Check if a previous conditional update was finally applied
+				if (retry) {
+					return isOwner(name, nextOwner);
+				}
+
+				return null;
 			} catch (WriteTimeoutException e) {
 				log.info("Write timeout during lock acquisition: {}; current owner: {}; next owner: {}", name, currentOwner, nextOwner);
 
-				UUID actualOwner = session.execute(selectStmt.bind(name)).one().getUuid(OWNER_COLUMN);
-				if (actualOwner != null && actualOwner.equals(nextOwner)) {
+				// Check if conditional update was applied
+				if ((acquireTs = isOwner(name, nextOwner)) != null) {
 					log.info("Lock acquisition was successful");
 					return acquireTs;
 				}
 
+				// Retry if not
 				log.info("Retry lock acquisition");
+				retry = true;
 			}
 		} while (true);
 	}
@@ -113,22 +134,21 @@ public class TaskLockRepositoryImpl implements TaskLockRepositoryCustom {
 	@Override
 	public void unlock(TaskLock lock) {
 		String name = lock.getName();
-		UUID owner = lock.getOwner();
+		UUID currentOwner = lock.getOwner();
 		do {
 			try {
-				if (!session.execute(updateStmt.bind(null, null, name, owner)).wasApplied()) {
-					log.info("Lock was not owned by {}: {}", owner, name);
-				}
+				session.execute(updateStmt.bind(null, null, name, currentOwner));
 				return;
 			} catch (WriteTimeoutException e) {
-				log.info("Write timeout during lock release: {}; owner: {}", name, owner);
+				log.info("Write timeout during lock release: {}; current owner: {}", name, currentOwner);
 
-				UUID actualOwner = session.execute(selectStmt.bind(name)).one().getUuid(OWNER_COLUMN);
-				if (actualOwner == null || !actualOwner.equals(owner)) {
+				// Check if conditional update was applied
+				if (isNotOwner(name, currentOwner)) {
 					log.info("Lock release was successful");
 					return;
 				}
 
+				// Retry if not
 				log.info("Retry lock release");
 			}
 		} while (true);
