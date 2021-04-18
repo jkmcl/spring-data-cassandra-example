@@ -29,7 +29,7 @@ import jkml.data.entity.User;
 
 @SpringBootTest
 @TestExecutionListeners(mergeMode=MergeMode.MERGE_WITH_DEFAULTS, listeners=CassandraUnitDependencyInjectionIntegrationTestExecutionListener.class)
-@CassandraDataSet(keyspace="mykeyspace", value={ "ddl.cql" })
+@CassandraDataSet(keyspace="keyspace1", value={ "ddl.cql" })
 @EmbeddedCassandra
 class UserRepositoryTests {
 

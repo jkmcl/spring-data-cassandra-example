@@ -1,6 +1,6 @@
 package jkml.data.entity;
 
-import java.util.Date;
+import java.time.Instant;
 
 import org.springframework.data.cassandra.core.mapping.Column;
 import org.springframework.data.cassandra.core.mapping.PrimaryKey;
@@ -19,10 +19,10 @@ public class ScheduledTask {
 	private int maxTsOffset;
 
 	@Column("last_start_ts")
-	private Date lastStartTs;
+	private Instant lastStartTs;
 
 	@Column("last_end_ts")
-	private Date lastEndTs;
+	private Instant lastEndTs;
 
 	public String getName() {
 		return name;
@@ -48,19 +48,19 @@ public class ScheduledTask {
 		this.maxTsOffset = maxTsOffset;
 	}
 
-	public Date getLastStartTs() {
+	public Instant getLastStartTs() {
 		return lastStartTs;
 	}
 
-	public void setLastStartTs(Date lastStartTs) {
+	public void setLastStartTs(Instant lastStartTs) {
 		this.lastStartTs = lastStartTs;
 	}
 
-	public Date getLastEndTs() {
+	public Instant getLastEndTs() {
 		return lastEndTs;
 	}
 
-	public void setLastEndTs(Date lastEndTs) {
+	public void setLastEndTs(Instant lastEndTs) {
 		this.lastEndTs = lastEndTs;
 	}
 

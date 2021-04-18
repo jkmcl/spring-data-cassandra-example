@@ -1,7 +1,5 @@
 package jkml.data.repository;
 
-import java.util.Date;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,13 +19,6 @@ public class RepoTestHelper {
 	@Autowired
 	private ScheduledTaskRepository schedTaskRepo;
 
-	private static String formtTimestamp(Date date) {
-		if (date == null) {
-			return null;
-		}
-		return date.toInstant().toString();
-	}
-
 	public void logTaskLockState(String name) {
 		TaskLock taskLock = repo.findById(name).get();
 		log.info("Name: {}; Owner: {}; AcquireTs: {}",
@@ -38,7 +29,7 @@ public class RepoTestHelper {
 		logTaskLockState(name);
 		ScheduledTask schedTask = schedTaskRepo.findById(name).get();
 		log.info("Name: {}; LastStartTs: {}; LastEndTs: {}",
-				schedTask.getName(), formtTimestamp(schedTask.getLastStartTs()), formtTimestamp(schedTask.getLastEndTs()));
+				schedTask.getName(), schedTask.getLastStartTs(), schedTask.getLastEndTs());
 	}
 
 }

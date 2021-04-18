@@ -2,7 +2,6 @@ package jkml.scheduling;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Date;
 import java.util.Optional;
 
 import org.slf4j.Logger;
@@ -40,18 +39,18 @@ public class ScheduledDistributedTask extends DistributedTask {
 	 */
 	private boolean isStarted(ScheduledTask schedTask) {
 		// Check if task was started previously
-		Date lastStartTs = schedTask.getLastStartTs();
+		Instant lastStartTs = schedTask.getLastStartTs();
 		if (lastStartTs == null) {
 			log.debug("Task ({}) was not started previously", taskName);
 			return false;
 		}
 
-		log.debug("Task ({}) was most recently started at {}", taskName, lastStartTs.toInstant());
+		log.debug("Task ({}) was most recently started at {}", taskName, lastStartTs);
 
 		// Check if task was started a long time ago (more than the max offset)
 		long maxTsOffset = schedTask.getMaxTsOffset();
 		Duration maxOffsetDuration = Duration.ofSeconds(maxTsOffset).abs();
-		Duration offsetDuration = Duration.between(Instant.now(), lastStartTs.toInstant()).abs();
+		Duration offsetDuration = Duration.between(Instant.now(), lastStartTs).abs();
 
 		if (offsetDuration.compareTo(maxOffsetDuration) > 0) {
 			log.debug("This instance of the task ({}) is considered not started as the most recent start time is more than {} seconds ago",
@@ -77,11 +76,11 @@ public class ScheduledDistributedTask extends DistributedTask {
 			return;
 		}
 		log.debug("Executing task: {}", taskName);
-		schedTask.setLastStartTs(new Date());
+		schedTask.setLastStartTs(Instant.now());
 		schedTask.setLastEndTs(null);
 		schedTask = schedTaskRepo.save(schedTask);
 		task.run();
-		schedTask.setLastEndTs(new Date());
+		schedTask.setLastEndTs(Instant.now());
 		schedTaskRepo.save(schedTask);
 	}
 
