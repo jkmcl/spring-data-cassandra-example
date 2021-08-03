@@ -7,9 +7,9 @@ import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import jkml.data.entity.ScheduledTask;
-import jkml.data.repository.ScheduledTaskRepository;
+import jkml.data.entity.TaskSchedule;
 import jkml.data.repository.TaskLockRepository;
+import jkml.data.repository.TaskScheduleRepository;
 
 /**
  * This is a wrapper of {@link Runnable}. When the {@link Runnable#run()} method of the underlying {@link Runnable}
@@ -26,10 +26,10 @@ public class ScheduledDistributedTask extends DistributedTask {
 
 	private final Logger log = LoggerFactory.getLogger(ScheduledDistributedTask.class);
 
-	protected final ScheduledTaskRepository schedTaskRepo;
+	protected final TaskScheduleRepository schedTaskRepo;
 
 	public ScheduledDistributedTask(
-			ScheduledTaskRepository schedTaskRepo, TaskLockRepository taskLockRepo, String taskName, Runnable task) {
+			TaskScheduleRepository schedTaskRepo, TaskLockRepository taskLockRepo, String taskName, Runnable task) {
 		super(taskLockRepo, taskName, task);
 		this.schedTaskRepo = schedTaskRepo;
 	}
@@ -37,7 +37,7 @@ public class ScheduledDistributedTask extends DistributedTask {
 	/**
 	 * Check if this instance of the task has been started, i.e. within the offset of the last start time.
 	 */
-	private boolean isStarted(ScheduledTask schedTask) {
+	private boolean isStarted(TaskSchedule schedTask) {
 		// Check if task was started previously
 		Instant lastStartTs = schedTask.getLastStartTs();
 		if (lastStartTs == null) {
@@ -65,12 +65,12 @@ public class ScheduledDistributedTask extends DistributedTask {
 
 	@Override
 	protected void executeTask() {
-		Optional<ScheduledTask> optSchedTask = schedTaskRepo.findById(taskName);
+		Optional<TaskSchedule> optSchedTask = schedTaskRepo.findById(taskName);
 		if (!optSchedTask.isPresent()) {
 			log.error("Task configuration not found: {}", taskName);
 			return;
 		}
-		ScheduledTask schedTask = optSchedTask.get();
+		TaskSchedule schedTask = optSchedTask.get();
 		if (isStarted(schedTask)) {
 			log.debug("Skip task execution as it has already been started: {}", taskName);
 			return;

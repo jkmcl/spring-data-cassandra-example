@@ -6,8 +6,8 @@ import org.springframework.data.cassandra.core.mapping.Column;
 import org.springframework.data.cassandra.core.mapping.PrimaryKey;
 import org.springframework.data.cassandra.core.mapping.Table;
 
-@Table("scheduled_task")
-public class ScheduledTask {
+@Table("task_schedule")
+public class TaskSchedule {
 
 	@PrimaryKey("name")
 	private String name;

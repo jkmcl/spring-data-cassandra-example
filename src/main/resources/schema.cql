@@ -28,7 +28,7 @@ CREATE TABLE IF NOT EXISTS task_lock (
 -- =============================================================================
 -- Scheduled tasks
 -- =============================================================================
-CREATE TABLE IF NOT EXISTS scheduled_task (
+CREATE TABLE IF NOT EXISTS task_schedule (
 	name TEXT,
 	cron_expression TEXT,
 	max_ts_offset INT,

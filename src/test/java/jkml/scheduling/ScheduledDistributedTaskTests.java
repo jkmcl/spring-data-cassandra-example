@@ -16,15 +16,15 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.context.TestExecutionListeners.MergeMode;
 
-import jkml.data.entity.ScheduledTask;
 import jkml.data.entity.TaskLock;
+import jkml.data.entity.TaskSchedule;
 import jkml.data.repository.RepoTestHelper;
-import jkml.data.repository.ScheduledTaskRepository;
 import jkml.data.repository.TaskLockRepository;
+import jkml.data.repository.TaskScheduleRepository;
 
 @SpringBootTest
 @TestExecutionListeners(mergeMode=MergeMode.MERGE_WITH_DEFAULTS, listeners=CassandraUnitDependencyInjectionIntegrationTestExecutionListener.class)
-@CassandraDataSet(keyspace="keyspace1", value={ "ddl.cql" })
+@CassandraDataSet(keyspace="keyspace1", value={ "schema.cql" })
 @EmbeddedCassandra
 class ScheduledDistributedTaskTests {
 
@@ -34,7 +34,7 @@ class ScheduledDistributedTaskTests {
 	private TaskLockRepository taskLockRepo;
 
 	@Autowired
-	private ScheduledTaskRepository schedTaskRepo;
+	private TaskScheduleRepository schedTaskRepo;
 
 	@Autowired
 	private RepoTestHelper testHelper;
@@ -50,7 +50,7 @@ class ScheduledDistributedTaskTests {
 
 		log.info("Creating scheduled task entity...");
 		int maxTsOffset = 5;
-		ScheduledTask schedTask = new ScheduledTask();
+		TaskSchedule schedTask = new TaskSchedule();
 		schedTask.setName(taskName);
 		schedTask.setMaxTsOffset(maxTsOffset);
 		schedTaskRepo.save(schedTask);

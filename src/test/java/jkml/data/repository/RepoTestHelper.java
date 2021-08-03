@@ -5,8 +5,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import jkml.data.entity.ScheduledTask;
 import jkml.data.entity.TaskLock;
+import jkml.data.entity.TaskSchedule;
 
 @Component
 public class RepoTestHelper {
@@ -17,7 +17,7 @@ public class RepoTestHelper {
 	private TaskLockRepository repo;
 
 	@Autowired
-	private ScheduledTaskRepository schedTaskRepo;
+	private TaskScheduleRepository schedTaskRepo;
 
 	public void logTaskLockState(String name) {
 		TaskLock taskLock = repo.findById(name).get();
@@ -27,7 +27,7 @@ public class RepoTestHelper {
 
 	public void logScheduledTaskState(String name) {
 		logTaskLockState(name);
-		ScheduledTask schedTask = schedTaskRepo.findById(name).get();
+		TaskSchedule schedTask = schedTaskRepo.findById(name).get();
 		log.info("Name: {}; LastStartTs: {}; LastEndTs: {}",
 				schedTask.getName(), schedTask.getLastStartTs(), schedTask.getLastEndTs());
 	}

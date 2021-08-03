@@ -18,7 +18,7 @@ import jkml.data.repository.TaskLockRepository;
 
 @SpringBootTest
 @TestExecutionListeners(mergeMode=MergeMode.MERGE_WITH_DEFAULTS, listeners=CassandraUnitDependencyInjectionIntegrationTestExecutionListener.class)
-@CassandraDataSet(keyspace="keyspace1", value={ "ddl.cql" })
+@CassandraDataSet(keyspace="keyspace1", value={ "schema.cql" })
 @EmbeddedCassandra
 class DistributedTaskTests {
 
