@@ -4,22 +4,24 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>jkml</groupId>
-	<artifactId>spring-boot-data-cassandra-example</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
 
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>2.4.9</version>
+		<version>2.5.4</version>
 	</parent>
+
+	<groupId>jkml</groupId>
+	<artifactId>spring-boot-data-cassandra-example</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
 
 	<properties>
 		<java.version>1.8</java.version>
 		<!-- 3.11.2.0 or 4.3.1.0, the latter has issues on Windows -->
 		<cassandraunit.version>3.11.2.0</cassandraunit.version>
-		<!-- Required for CassandraUnit 3.x -->
+		<!-- Required by CassandraUnit 3.x -->
 		<cassandra-driver-core.version>3.11.0</cassandra-driver-core.version>
+		<cassandra.version>3.11.11</cassandra.version>
 	</properties>
 
 	<dependencies>
@@ -56,10 +58,6 @@
 					<groupId>junit</groupId>
 					<artifactId>*</artifactId>
 				</exclusion>
-				<exclusion>
-					<groupId>org.ow2.asm</groupId>
-					<artifactId>*</artifactId>
-				</exclusion>
 			</exclusions>
 		</dependency>
 
@@ -76,15 +74,31 @@
 			</exclusions>
 		</dependency>
 
+		<!-- Required by cassandra-unit but not used by cassandra-all since 3.11.11 -->
+		<dependency>
+			<groupId>org.apache.cassandra</groupId>
+			<artifactId>cassandra-thrift</artifactId>
+			<scope>test</scope>
+		</dependency>
+
 	</dependencies>
 
-	<build>
-		<plugins>
-			<plugin>
-				<groupId>org.springframework.boot</groupId>
-				<artifactId>spring-boot-maven-plugin</artifactId>
-			</plugin>
-		</plugins>
-	</build>
+	<dependencyManagement>
+		<dependencies>
+
+			<dependency>
+				<groupId>org.apache.cassandra</groupId>
+				<artifactId>cassandra-all</artifactId>
+				<version>${cassandra.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>org.apache.cassandra</groupId>
+				<artifactId>cassandra-thrift</artifactId>
+				<version>${cassandra.version}</version>
+			</dependency>
+
+		</dependencies>
+	</dependencyManagement>
 
 </project>
