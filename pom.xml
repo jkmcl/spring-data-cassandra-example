@@ -22,7 +22,7 @@
 		<cassandraunit.version>3.11.2.0</cassandraunit.version>
 		<!-- Required by CassandraUnit 3.x -->
 		<cassandra-driver-core.version>3.11.0</cassandra-driver-core.version>
-		<cassandra.version>3.11.11</cassandra.version>
+		<cassandra.version>3.11.12</cassandra.version>
 	</properties>
 
 	<dependencies>
