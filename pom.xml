@@ -8,7 +8,7 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>2.5.5</version>
+		<version>2.6.4</version>
 	</parent>
 
 	<groupId>jkml</groupId>
@@ -17,11 +17,10 @@
 
 	<properties>
 		<java.version>1.8</java.version>
-		<guava.version>31.0-jre</guava.version>
+		<guava.version>31.0.1-jre</guava.version>
 		<!-- 3.11.2.0 or 4.3.1.0, the latter has issues on Windows -->
 		<cassandraunit.version>3.11.2.0</cassandraunit.version>
-		<!-- Required by CassandraUnit 3.x -->
-		<cassandra-driver-core.version>3.11.0</cassandra-driver-core.version>
+		<cassandra-driver-core.version>3.11.1</cassandra-driver-core.version>
 		<cassandra.version>3.11.12</cassandra.version>
 	</properties>
 
@@ -32,6 +31,7 @@
 			<artifactId>spring-boot-starter-data-cassandra</artifactId>
 		</dependency>
 
+		<!-- Ensure transitive dependencies of java-driver-core take precedence -->
 		<dependency>
 			<groupId>com.datastax.oss</groupId>
 			<artifactId>java-driver-core</artifactId>
@@ -67,6 +67,7 @@
 			<artifactId>cassandra-driver-core</artifactId>
 			<version>${cassandra-driver-core.version}</version>
 			<scope>test</scope>
+			<!-- Prevent conflicts with transitive dependencies of compile scope dependencies -->
 			<exclusions>
 				<exclusion>
 					<groupId>com.github.jnr</groupId>
@@ -75,7 +76,7 @@
 			</exclusions>
 		</dependency>
 
-		<!-- Required by cassandra-unit but not used by cassandra-all since 3.11.11 -->
+		<!-- Used by cassandra-unit but not used by cassandra-all since version 3.11.11 -->
 		<dependency>
 			<groupId>org.apache.cassandra</groupId>
 			<artifactId>cassandra-thrift</artifactId>
