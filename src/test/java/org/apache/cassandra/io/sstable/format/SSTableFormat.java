@@ -1,6 +1,6 @@
 /*
  * Identical to the following except that CharMatcher.DIGIT was replaced by CharMatcher.digit() so that it works with recent versions of Guava.
- * https://github.com/apache/cassandra/blob/cassandra-3.11.12/src/java/org/apache/cassandra/io/sstable/format/SSTableFormat.java
+ * https://github.com/apache/cassandra/blob/cassandra-3.11.13/src/java/org/apache/cassandra/io/sstable/format/SSTableFormat.java
  */
 
 /*

@@ -19,7 +19,7 @@ public class CassandraConfiguration {
 
 	/**
 	 * Based on
-	 * https://github.com/spring-projects/spring-boot/blob/2.3.x/spring-boot-project/spring-boot-autoconfigure/src/main/java/org/springframework/boot/autoconfigure/data/cassandra/CassandraDataAutoConfiguration.java
+	 * https://github.com/spring-projects/spring-boot/blob/2.7.x/spring-boot-project/spring-boot-autoconfigure/src/main/java/org/springframework/boot/autoconfigure/data/cassandra/CassandraDataAutoConfiguration.java
 	 */
 	@Bean
 	@ConditionalOnMissingBean
