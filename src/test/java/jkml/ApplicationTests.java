@@ -19,7 +19,7 @@ import org.springframework.test.context.TestExecutionListeners.MergeMode;
 class ApplicationTests {
 
 	@Autowired
-	ApplicationContext ctx;
+	private ApplicationContext ctx;
 
 	@Test
 	void contextLoads() {
