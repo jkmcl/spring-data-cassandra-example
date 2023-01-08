@@ -15,7 +15,7 @@ import jkml.data.repository.support.CustomCassandraRepositoryImpl;
 
 @Configuration
 @EnableCassandraRepositories(repositoryBaseClass = CustomCassandraRepositoryImpl.class, basePackageClasses = PackageMarker.class)
-public class CassandraConfiguration {
+class CassandraConfiguration {
 
 	/**
 	 * Based on
@@ -23,12 +23,12 @@ public class CassandraConfiguration {
 	 */
 	@Bean
 	@ConditionalOnMissingBean
-	public AsyncCassandraTemplate asyncCassandraTemplate(SessionFactory sessionFactory, CassandraConverter converter) {
+	AsyncCassandraTemplate asyncCassandraTemplate(SessionFactory sessionFactory, CassandraConverter converter) {
 		return new AsyncCassandraTemplate(sessionFactory, converter);
 	}
 
 	@Bean
-	public CustomCassandraOperations customCassandraOperations(AsyncCassandraOperations asyncCassandraOperations) {
+	CustomCassandraOperations customCassandraOperations(AsyncCassandraOperations asyncCassandraOperations) {
 		return new CustomCassandraOperations(asyncCassandraOperations);
 	}
 
