@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import com.datastax.oss.driver.api.core.CqlSession;
 import com.datastax.oss.driver.api.core.cql.PreparedStatement;
 import com.datastax.oss.driver.api.core.cql.Row;
+import com.datastax.oss.driver.api.core.servererrors.CASWriteUnknownException;
 import com.datastax.oss.driver.api.core.servererrors.WriteTimeoutException;
 
 import jkml.data.entity.TaskLock;
@@ -115,8 +116,8 @@ public class TaskLockRepositoryImpl implements TaskLockRepositoryCustom {
 				}
 
 				return null;
-			} catch (WriteTimeoutException e) {
-				log.info("Write timeout during lock acquisition: {}; current owner: {}; next owner: {}", name, currentOwner, nextOwner);
+			} catch (WriteTimeoutException | CASWriteUnknownException e) {
+				log.info("CAS write timeout or unknown result during lock acquisition: {}; current owner: {}; next owner: {}", name, currentOwner, nextOwner);
 
 				// Check if conditional update was applied
 				if ((acquireTs = isOwner(name, nextOwner)) != null) {
@@ -139,8 +140,8 @@ public class TaskLockRepositoryImpl implements TaskLockRepositoryCustom {
 			try {
 				session.execute(updateStmt.bind(null, null, name, currentOwner));
 				return;
-			} catch (WriteTimeoutException e) {
-				log.info("Write timeout during lock release: {}; current owner: {}", name, currentOwner);
+			} catch (WriteTimeoutException | CASWriteUnknownException e) {
+				log.info("CAS write timeout or unknown result during lock release: {}; current owner: {}", name, currentOwner);
 
 				// Check if conditional update was applied
 				if (isNotOwner(name, currentOwner)) {
