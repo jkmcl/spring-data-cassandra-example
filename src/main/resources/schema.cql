@@ -5,6 +5,7 @@ CREATE TABLE IF NOT EXISTS user (
 	id UUID,
 	first_name TEXT,
 	last_name TEXT,
+	role TEXT,
 
 	PRIMARY KEY (id)
 );

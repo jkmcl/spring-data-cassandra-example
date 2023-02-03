@@ -15,6 +15,7 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.cassandraunit.spring.CassandraDataSet;
 import org.cassandraunit.spring.CassandraUnitDependencyInjectionIntegrationTestExecutionListener;
 import org.cassandraunit.spring.EmbeddedCassandra;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,6 +27,7 @@ import org.springframework.test.context.TestExecutionListeners.MergeMode;
 import com.google.common.base.Stopwatch;
 
 import jkml.data.entity.User;
+import jkml.data.entity.User.Role;
 
 @SpringBootTest
 @TestExecutionListeners(mergeMode=MergeMode.MERGE_WITH_DEFAULTS, listeners=CassandraUnitDependencyInjectionIntegrationTestExecutionListener.class)
@@ -38,21 +40,30 @@ class UserRepositoryTests {
 	@Autowired
 	private UserRepository userRepo;
 
+	@BeforeEach
+	void beforeEach() {
+		userRepo.deleteAll();
+	}
+
 	@Test
 	void test() {
 		log.info("Sanity tests...");
 
-		userRepo.deleteAll();
-		userRepo.save(new User(UUID.randomUUID(), "Bob", "Smith"));
-		assertEquals(1, userRepo.findAll().size());
+		UUID id1 = UUID.randomUUID();
+		UUID id2 = UUID.randomUUID();
+
+		userRepo.save(new User(id1, "Bill", "Gates"));
+		userRepo.save(new User(id2, "Steve", "Jobs", Role.CHECKER));
+
+		assertEquals(2, userRepo.count());
+
+		assertEquals(Role.MAKER, userRepo.findById(id1).orElse(null).getRole());
+		assertEquals(Role.CHECKER, userRepo.findById(id2).orElse(null).getRole());
 	}
 
 	@Test
 	void testRepository() throws Exception {
 		log.info("Testing repository methods...");
-
-		// Delete all users
-		userRepo.deleteAll();
 
 		// Save a couple of users
 		userRepo.save(new User(UUID.randomUUID(), "Alice", "Smith"));
@@ -97,7 +108,6 @@ class UserRepositoryTests {
 
 	@Test
 	void testInsertIfNotExists() throws Exception {
-		userRepo.deleteAll();
 		User user = new User(UUID.randomUUID(), "Bob", "Smith");
 
 		Optional<User> result = userRepo.insertIfNotExists(user);
