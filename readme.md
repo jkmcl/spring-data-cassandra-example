@@ -8,3 +8,4 @@ A sample application demonstrating the use of the following:
 * A task lock implemented using Cassandra's lightweight transaction to ensure that a task is only executed by one thread at any given time
 * Two Runnable wrapper classes for synchronizing execution of scheduled tasks across multiple threads/processes
 * Custom converters for converting between enums and their text values stored in Cassandra
+* A helper class for selecting rows and then executing a CQL statement with bind variables for each selected row using values extracted from the row

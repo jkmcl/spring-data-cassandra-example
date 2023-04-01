@@ -38,3 +38,21 @@ CREATE TABLE IF NOT EXISTS task_schedule (
 
 	PRIMARY KEY (name)
 );
+
+-- =============================================================================
+-- Data migration tables
+-- =============================================================================
+CREATE TABLE IF NOT EXISTS view_stats_v1 (
+	month TEXT,
+	views INT,
+
+	PRIMARY KEY (month)
+);
+
+CREATE TABLE IF NOT EXISTS view_stats_v2 (
+	month TEXT,
+	day_of_week TEXT,
+	views INT,
+
+	PRIMARY KEY (month, day_of_week)
+);

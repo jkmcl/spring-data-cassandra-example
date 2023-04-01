@@ -3,11 +3,8 @@ package jkml.data.repository;
 import java.time.Instant;
 import java.util.UUID;
 
-import javax.annotation.PostConstruct;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import com.datastax.oss.driver.api.core.CqlSession;
 import com.datastax.oss.driver.api.core.cql.PreparedStatement;
@@ -31,22 +28,21 @@ public class TaskLockRepositoryImpl implements TaskLockRepositoryCustom {
 
 	private final Logger log = LoggerFactory.getLogger(TaskLockRepositoryImpl.class);
 
-	private PreparedStatement updateStmt;
+	private final CqlSession session;
 
-	private PreparedStatement selectStmt;
+	private final PreparedStatement updateStmt;
 
-	@Autowired
-	private CqlSession session;
+	private final PreparedStatement selectStmt;
+
+	public TaskLockRepositoryImpl(CqlSession cqlSession) {
+		session = cqlSession;
+		updateStmt = prepare(UPDATE_QUERY);
+		selectStmt = prepare(SELECT_QUERY);
+	}
 
 	private PreparedStatement prepare(String query) {
 		log.info("Creating prepared statement: {}", query);
 		return session.prepare(query);
-	}
-
-	@PostConstruct
-	private void postConstruct() {
-		updateStmt = prepare(UPDATE_QUERY);
-		selectStmt = prepare(SELECT_QUERY);
 	}
 
 	@Override
