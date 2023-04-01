@@ -27,7 +27,7 @@ public class RowsProcessor {
 	 * @param selectQuery   CQL statement for fetching rows
 	 * @param perRowQuery   CQL statement with bind variables to be executed for
 	 *                      each fetched row
-	 * @param getBindValues Function that extracts values from each row to be bound
+	 * @param getBindValues Function that extracts values to be bound from each row
 	 */
 	public void process(String selectQuery, String perRowQuery, Function<Row, Object[]> getBindValues) {
 		log.info("Fetching rows with statement: {}", selectQuery);
