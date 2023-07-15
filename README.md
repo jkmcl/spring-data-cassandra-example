@@ -1,7 +1,7 @@
 A sample application demonstrating the use of the following:
 
 * Spring Boot, Spring Data Cassandra and CassandraUnit
-* POM tweaks to make CassandraUnit work with Cassandra 4.0.x
+* POM tweaks to make CassandraUnit work with Cassandra 4.0.x and the latter with Java 11
 * Custom query methods utilizing secondary indexes
 * A custom repository method that performs bulk insert asynchronously with number of in-flight inserts limited using a semaphore
 * A custom repository base class that provides a saveIfNotExists method
