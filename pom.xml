@@ -55,8 +55,23 @@
 			<version>${cassandra.version}</version>
 			<scope>test</scope>
 			<exclusions>
+				<!-- Exclude older version that shadows version used by latest driver -->
 				<exclusion>
 					<groupId>org.ow2.asm</groupId>
+					<artifactId>*</artifactId>
+				</exclusion>
+				<!-- Exclude high-scale-lib because this project includes its sources already minus classes in packages of jdk.base -->
+				<exclusion>
+					<groupId>com.boundary</groupId>
+					<artifactId>*</artifactId>
+				</exclusion>
+				<!-- Exclude dependencies containing classes in packages of jdk.base -->
+				<exclusion>
+					<groupId>org.gridkit.jvmtool</groupId>
+					<artifactId>*</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.gridkit.lab</groupId>
 					<artifactId>*</artifactId>
 				</exclusion>
 			</exclusions>
