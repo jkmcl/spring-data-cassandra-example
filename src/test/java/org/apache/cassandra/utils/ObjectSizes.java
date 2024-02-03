@@ -32,7 +32,6 @@ import org.github.jamm.MemoryMeter.Guess;
  */
 public class ObjectSizes
 {
-	// Backported changes from https://github.com/apache/cassandra/blob/cassandra-5.0-beta1/src/java/org/apache/cassandra/utils/ObjectSizes.java
     private static final MemoryMeter meter = MemoryMeter.builder().withGuessing(Guess.INSTRUMENTATION_AND_SPECIFICATION, Guess.UNSAFE) .build();
 
     private static final long EMPTY_HEAP_BUFFER_SIZE = measure(ByteBufferUtil.EMPTY_BYTE_BUFFER);
@@ -110,7 +109,7 @@ public class ObjectSizes
 
     private static long sizeOfArray(int length, int elementSize)
     {
-    	return computeArraySize(MEMORY_LAYOUT.getArrayHeaderSize(), length, elementSize, MEMORY_LAYOUT.getObjectAlignment());
+        return computeArraySize(MEMORY_LAYOUT.getArrayHeaderSize(), length, elementSize, MEMORY_LAYOUT.getObjectAlignment());
     }
 
     /**

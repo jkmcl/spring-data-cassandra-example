@@ -33,16 +33,24 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
-import org.apache.cassandra.exceptions.ConfigurationException;
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
+import com.google.common.io.ByteStreams;
+
 import org.apache.commons.lang3.SystemUtils;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import org.apache.cassandra.exceptions.ConfigurationException;
 import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.TypeDescription;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.composer.Composer;
-import org.yaml.snakeyaml.constructor.CustomClassLoaderConstructor;
 import org.yaml.snakeyaml.constructor.SafeConstructor;
+import org.yaml.snakeyaml.constructor.CustomClassLoaderConstructor;
 import org.yaml.snakeyaml.error.YAMLException;
 import org.yaml.snakeyaml.events.Event;
 import org.yaml.snakeyaml.events.Event.ID;
@@ -52,12 +60,6 @@ import org.yaml.snakeyaml.introspector.PropertyUtils;
 import org.yaml.snakeyaml.nodes.Node;
 import org.yaml.snakeyaml.parser.Parser;
 import org.yaml.snakeyaml.resolver.Resolver;
-
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
-import com.google.common.io.ByteStreams;
 
 public class YamlConfigurationLoader implements ConfigurationLoader
 {
@@ -161,17 +163,14 @@ public class YamlConfigurationLoader implements ConfigurationLoader
         Yaml yaml = new Yaml(constructor);
         Node node = yaml.represent(map);
         constructor.setComposer(new Composer(new Parser() {
-
 			@Override
 			public boolean checkEvent(ID choice) {
 				return false;
 			}
-
 			@Override
 			public Event peekEvent() {
 				return null;
 			}
-
 			@Override
 			public Event getEvent() {
 				return null;

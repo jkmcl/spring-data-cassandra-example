@@ -64,7 +64,7 @@
 				<artifactId>cassandra-all</artifactId>
 				<version>${cassandra.version}</version>
 				<exclusions>
-					<!-- Exclude high-scale-lib because this project includes its sources already minus classes in packages of jdk.base -->
+					<!-- Exclude high-scale-lib because its source files are already in src/test excluding classes in packages of jdk.base -->
 					<exclusion>
 						<groupId>com.boundary</groupId>
 						<artifactId>*</artifactId>
@@ -117,7 +117,7 @@
 						--add-opens java.base/jdk.internal.util.jar=ALL-UNNAMED
 						--add-opens jdk.management/com.sun.management.internal=ALL-UNNAMED
 
-						<!-- Java 17 -->
+						<!-- Required for Java 17 -->
 						--add-opens java.base/java.io=ALL-UNNAMED
 						--add-opens java.base/java.lang=ALL-UNNAMED
 						--add-opens java.base/java.nio=ALL-UNNAMED

@@ -16,7 +16,23 @@ Features:
 * A helper class for selecting rows and then executing a CQL statement with bind variables for each selected row using values extracted from the row
 
 
-# Eliminate Errors in Eclipse
+# Changes to Cassandra
+
+Customized versions of the following classes from version 4.0.12 in `src/test`:
+
+* `org.apache.cassandra.config.YamlConfigurationLoader`: Minor changes to adapt to the incompatible API of the newer version of SnakeYAML used by Spring Boot 3.2.
+* `org.apache.cassandra.utils.ObjectSizes`: Back-ported minor changes from Cassandra 5.0 to adapt to the incompatible API of the newer version of Jamm that works on Java 17.
+
+
+# Changes to com.boundary:high-scale-lib
+
+Original source files from version 1.0.6 in `src/test` excluding the following packages:
+
+* `com.boundary` and `com.boundary.high_scale_lib`: Contain classes not in the original high-scale-lib and not used by Cassandra.
+* `java.util` and `java.util.concurrent`: Contain high-performance implementation of `Hashtable` and `ConcurrentHashMap` but JPMS disallows overriding classes in the `java.base` module.
+
+
+# How to Eliminate Errors in Eclipse
 
 Uncheck `Use '--release' option` in the project's Java Compiler settings.
 
