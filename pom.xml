@@ -8,7 +8,7 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>2.7.13</version>
+		<version>3.2.2</version>
 	</parent>
 
 	<groupId>jkml</groupId>
@@ -16,9 +16,10 @@
 	<version>0.0.1-SNAPSHOT</version>
 
 	<properties>
-		<java.version>11</java.version>
-		<cassandra.version>4.0.10</cassandra.version>
+		<java.version>17</java.version>
 		<cassandra-unit.version>4.3.1.0</cassandra-unit.version>
+		<cassandra.version>4.0.12</cassandra.version>
+		<jamm.version>0.4.0</jamm.version>
 	</properties>
 
 	<dependencies>
@@ -28,53 +29,10 @@
 			<artifactId>spring-boot-starter-data-cassandra</artifactId>
 		</dependency>
 
-		<!-- Ensure transitive dependencies of java-driver-core take precedence
-		over those of cassandra-all and cassandra-unit -->
-		<dependency>
-			<groupId>com.datastax.oss</groupId>
-			<artifactId>java-driver-core</artifactId>
-		</dependency>
-
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
-		</dependency>
-
-		<dependency>
-			<groupId>org.awaitility</groupId>
-			<artifactId>awaitility</artifactId>
-			<scope>test</scope>
-		</dependency>
-
-		<!-- Ensure transitive dependencies of cassandra-all take precedence
-		over those of cassandra-unit -->
-		<dependency>
-			<groupId>org.apache.cassandra</groupId>
-			<artifactId>cassandra-all</artifactId>
-			<version>${cassandra.version}</version>
-			<scope>test</scope>
-			<exclusions>
-				<!-- Exclude older version that shadows version used by latest driver -->
-				<exclusion>
-					<groupId>org.ow2.asm</groupId>
-					<artifactId>*</artifactId>
-				</exclusion>
-				<!-- Exclude high-scale-lib because this project includes its sources already minus classes in packages of jdk.base -->
-				<exclusion>
-					<groupId>com.boundary</groupId>
-					<artifactId>*</artifactId>
-				</exclusion>
-				<!-- Exclude dependencies containing classes in packages of jdk.base -->
-				<exclusion>
-					<groupId>org.gridkit.jvmtool</groupId>
-					<artifactId>*</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.gridkit.lab</groupId>
-					<artifactId>*</artifactId>
-				</exclusion>
-			</exclusions>
 		</dependency>
 
 		<dependency>
@@ -95,6 +53,44 @@
 		</dependency>
 
 	</dependencies>
+	
+	<dependencyManagement>
+		
+		
+		<dependencies>
+			
+			<dependency>
+				<groupId>org.apache.cassandra</groupId>
+				<artifactId>cassandra-all</artifactId>
+				<version>${cassandra.version}</version>
+				<exclusions>
+					<!-- Exclude high-scale-lib because this project includes its sources already minus classes in packages of jdk.base -->
+					<exclusion>
+						<groupId>com.boundary</groupId>
+						<artifactId>*</artifactId>
+					</exclusion>
+					<!-- Exclude dependencies containing classes in packages of jdk.base -->
+					<exclusion>
+						<groupId>org.gridkit.jvmtool</groupId>
+						<artifactId>*</artifactId>
+					</exclusion>
+					<exclusion>
+						<groupId>org.gridkit.lab</groupId>
+						<artifactId>*</artifactId>
+					</exclusion>
+				</exclusions>
+			</dependency>
+
+			<!-- Use version that works on Java 17 -->
+			<dependency>
+				<groupId>com.github.jbellis</groupId>
+				<artifactId>jamm</artifactId>
+				<version>${jamm.version}</version>
+			</dependency>
+
+		</dependencies>
+
+	</dependencyManagement>
 
 	<build>
 		<plugins>
@@ -103,9 +99,7 @@
 				<configuration>
 					<argLine>
 						<!-- From
-						https://github.com/apache/cassandra/blob/cassandra-4.0.10/conf/jvm11-clients.options -->
-						-Djdk.attach.allowAttachSelf=true
-						
+						https://github.com/apache/cassandra/blob/cassandra-4.0.12/conf/jvm11-clients.options -->
 						--add-exports java.base/jdk.internal.misc=ALL-UNNAMED
 						--add-exports java.base/jdk.internal.ref=ALL-UNNAMED
 						--add-exports java.base/sun.nio.ch=ALL-UNNAMED
@@ -113,7 +107,7 @@
 						--add-exports java.rmi/sun.rmi.registry=ALL-UNNAMED
 						--add-exports java.rmi/sun.rmi.server=ALL-UNNAMED
 						--add-exports java.sql/java.sql=ALL-UNNAMED
-						
+
 						--add-opens java.base/java.lang.module=ALL-UNNAMED
 						--add-opens java.base/jdk.internal.loader=ALL-UNNAMED
 						--add-opens java.base/jdk.internal.ref=ALL-UNNAMED
@@ -122,6 +116,16 @@
 						--add-opens java.base/jdk.internal.module=ALL-UNNAMED
 						--add-opens java.base/jdk.internal.util.jar=ALL-UNNAMED
 						--add-opens jdk.management/com.sun.management.internal=ALL-UNNAMED
+
+						<!-- Java 17 -->
+						--add-opens java.base/java.io=ALL-UNNAMED
+						--add-opens java.base/java.lang=ALL-UNNAMED
+						--add-opens java.base/java.nio=ALL-UNNAMED
+						--add-opens java.base/java.util=ALL-UNNAMED
+						--add-opens java.base/java.util.concurrent=ALL-UNNAMED
+						--add-opens java.base/java.util.concurrent.atomic=ALL-UNNAMED
+						--add-opens java.base/sun.nio.ch=ALL-UNNAMED
+
 					</argLine>
 				</configuration>
 			</plugin>

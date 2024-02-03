@@ -17,7 +17,7 @@ public class User {
 
 		private final String text;
 
-		private Role(String text) {
+		Role(String text) {
 			this.text = text;
 		}
 

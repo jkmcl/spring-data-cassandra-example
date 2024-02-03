@@ -7,7 +7,6 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.cassandra.core.AsyncCassandraOperations;
-import org.springframework.util.concurrent.ListenableFutureCallback;
 
 public class CustomCassandraOperations {
 
@@ -38,21 +37,14 @@ public class CustomCassandraOperations {
 			}
 
 			try {
-				asyncOperations.insert(entity).addCallback(new ListenableFutureCallback<T>() {
-
-					@Override
-					public void onSuccess(T entity) {
+				asyncOperations.insert(entity).whenComplete((e, t) -> {
+					if (t == null) {
 						count.incrementAndGet();
-						semaphore.release();
-					}
-
-					@Override
-					public void onFailure(Throwable t) {
+					} else {
 						log.error("Error executing asynchronous insertion", t);
 						hasError.set(true);
-						semaphore.release();
 					}
-
+					semaphore.release();
 				});
 			} catch (Exception e) {
 				log.error("Error initiating asynchronous insertion", e);

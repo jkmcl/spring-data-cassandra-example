@@ -41,6 +41,7 @@ class CassandraConfiguration {
 
 	@ReadingConverter
 	class RoleReadingConverter implements Converter<String, Role> {
+		@Override
 		public Role convert(String source) {
 			return Role.parse(source);
 		}
@@ -48,6 +49,7 @@ class CassandraConfiguration {
 
 	@WritingConverter
 	class RoleWritingConverter implements Converter<Role, String> {
+		@Override
 		public String convert(Role source) {
 			return source.toString();
 		}

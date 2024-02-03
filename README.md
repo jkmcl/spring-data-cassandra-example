@@ -2,8 +2,8 @@
 
 A sample application demonstrating the use of the following:
 
-* Spring Boot, Spring Data Cassandra and CassandraUnit
-* POM tweaks to make CassandraUnit work with Cassandra 4.0.x and the latter with Java 11
+* Spring Boot, Spring Data for Apache Cassandra and CassandraUnit
+* POM tweaks to make CassandraUnit work with Cassandra 4.0.x and the latter with Spring Boot 3.2.x and Java 17
 * Custom query methods utilizing secondary indexes
 * A custom repository method that performs bulk insert asynchronously with number of in-flight inserts limited using a semaphore
 * A custom repository base class that provides a saveIfNotExists method
@@ -23,7 +23,7 @@ Add the same JPMS settings in https://github.com/apache/cassandra/blob/cassandra
 		<!-- Start of block for Cassandra -->
 		<attribute name="module" value="true"/>
 		<attribute name="add-exports" value="java.base/jdk.internal.misc=ALL-UNNAMED:java.base/jdk.internal.ref=ALL-UNNAMED:java.base/sun.nio.ch=ALL-UNNAMED:java.management.rmi/com.sun.jmx.remote.internal.rmi=ALL-UNNAMED:java.rmi/sun.rmi.registry=ALL-UNNAMED:java.rmi/sun.rmi.server=ALL-UNNAMED:java.sql/java.sql=ALL-UNNAMED"/>
-		<attribute name="add-opens" value="java.base/java.lang.module=ALL-UNNAMED:java.base/jdk.internal.loader=ALL-UNNAMED:java.base/jdk.internal.ref=ALL-UNNAMED:java.base/jdk.internal.reflect=ALL-UNNAMED:java.base/jdk.internal.math=ALL-UNNAMED:java.base/jdk.internal.module=ALL-UNNAMED:java.base/jdk.internal.util.jar=ALL-UNNAMED:jdk.management/com.sun.management.internal=ALL-UNNAMED"/>
+		<attribute name="add-opens" value="java.base/java.lang.module=ALL-UNNAMED:java.base/jdk.internal.loader=ALL-UNNAMED:java.base/jdk.internal.ref=ALL-UNNAMED:java.base/jdk.internal.reflect=ALL-UNNAMED:java.base/jdk.internal.math=ALL-UNNAMED:java.base/jdk.internal.module=ALL-UNNAMED:java.base/jdk.internal.util.jar=ALL-UNNAMED:jdk.management/com.sun.management.internal=ALL-UNNAMED:java.base/java.io=ALL-UNNAMED:java.base/java.nio=ALL-UNNAMED:java.base/java.util=ALL-UNNAMED:java.base/java.util.concurrent=ALL-UNNAMED:java.base/java.util.concurrent.atomic=ALL-UNNAMED:java.base/sun.nio.ch=ALL-UNNAMED"/>
 		<!-- End of block for Cassandra -->
 		<attribute name="maven.pomderived" value="true"/>
 	</attributes>
