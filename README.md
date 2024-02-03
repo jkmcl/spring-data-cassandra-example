@@ -16,6 +16,11 @@ Features:
 * A helper class for selecting rows and then executing a CQL statement with bind variables for each selected row using values extracted from the row
 
 
+# Changes to CassandraUnit
+
+Customized version of `cu-cassandra.yaml` that CassandraUnit reads from the class path in `src/test/resources/cu-cassandra.yaml`. This version is based on the default `cassandra.yaml` from Cassandra 4.0.12.
+
+
 # Changes to Cassandra
 
 Customized versions of the following classes from version 4.0.12 in `src/test`:
