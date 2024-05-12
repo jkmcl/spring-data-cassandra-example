@@ -1,6 +1,6 @@
 package jkml.config;
 
-import java.util.Arrays;
+import java.util.List;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
@@ -26,10 +26,10 @@ class CassandraConfiguration {
 
 	/**
 	 * Based on
-	 * https://github.com/spring-projects/spring-boot/blob/2.7.x/spring-boot-project/spring-boot-autoconfigure/src/main/java/org/springframework/boot/autoconfigure/data/cassandra/CassandraDataAutoConfiguration.java
+	 * https://github.com/spring-projects/spring-boot/blob/3.2.x/spring-boot-project/spring-boot-autoconfigure/src/main/java/org/springframework/boot/autoconfigure/data/cassandra/CassandraDataAutoConfiguration.java
 	 */
 	@Bean
-	@ConditionalOnMissingBean
+	@ConditionalOnMissingBean(AsyncCassandraOperations.class)
 	AsyncCassandraTemplate asyncCassandraTemplate(SessionFactory sessionFactory, CassandraConverter converter) {
 		return new AsyncCassandraTemplate(sessionFactory, converter);
 	}
@@ -40,7 +40,7 @@ class CassandraConfiguration {
 	}
 
 	@ReadingConverter
-	class RoleReadingConverter implements Converter<String, Role> {
+	private static class RoleReadingConverter implements Converter<String, Role> {
 		@Override
 		public Role convert(String source) {
 			return Role.parse(source);
@@ -48,7 +48,7 @@ class CassandraConfiguration {
 	}
 
 	@WritingConverter
-	class RoleWritingConverter implements Converter<Role, String> {
+	private static class RoleWritingConverter implements Converter<Role, String> {
 		@Override
 		public String convert(Role source) {
 			return source.toString();
@@ -57,7 +57,7 @@ class CassandraConfiguration {
 
 	@Bean
 	CassandraCustomConversions cassandraCustomConversions() {
-		return new CassandraCustomConversions(Arrays.asList(new RoleReadingConverter(), new RoleWritingConverter()));
+		return new CassandraCustomConversions(List.of(new RoleReadingConverter(), new RoleWritingConverter()));
 	}
 
 }

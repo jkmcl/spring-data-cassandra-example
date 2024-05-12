@@ -38,11 +38,11 @@ class UserRepositoryTests {
 	private final Logger log = LoggerFactory.getLogger(UserRepositoryTests.class);
 
 	@Autowired
-	private UserRepository userRepo;
+	private UserRepository repo;
 
 	@BeforeEach
 	void beforeEach() {
-		userRepo.deleteAll();
+		repo.deleteAll();
 	}
 
 	@Test
@@ -52,13 +52,13 @@ class UserRepositoryTests {
 		UUID id1 = UUID.randomUUID();
 		UUID id2 = UUID.randomUUID();
 
-		userRepo.save(new User(id1, "Bill", "Gates"));
-		userRepo.save(new User(id2, "Steve", "Jobs", Role.CHECKER));
+		repo.save(new User(id1, "Bill", "Gates"));
+		repo.save(new User(id2, "Steve", "Jobs", Role.CHECKER));
 
-		assertEquals(2, userRepo.count());
+		assertEquals(2, repo.count());
 
-		assertEquals(Role.MAKER, userRepo.findById(id1).orElse(null).getRole());
-		assertEquals(Role.CHECKER, userRepo.findById(id2).orElse(null).getRole());
+		assertEquals(Role.MAKER, repo.findById(id1).orElse(null).getRole());
+		assertEquals(Role.CHECKER, repo.findById(id2).orElse(null).getRole());
 	}
 
 	@Test
@@ -66,14 +66,14 @@ class UserRepositoryTests {
 		log.info("Testing repository methods...");
 
 		// Save a couple of users
-		userRepo.save(new User(UUID.randomUUID(), "Alice", "Smith"));
-		userRepo.save(new User(UUID.randomUUID(), "Bob", "Smith"));
+		repo.save(new User(UUID.randomUUID(), "Alice", "Smith"));
+		repo.save(new User(UUID.randomUUID(), "Bob", "Smith"));
 
 		// Fetch users by first name
-		assertEquals(1, userRepo.findByFirstName("Alice").size());
+		assertEquals(1, repo.findByFirstName("Alice").size());
 
 		// Fetch users by last name
-		assertEquals(2, userRepo.findByLastName("Smith").size());
+		assertEquals(2, repo.findByLastName("Smith").size());
 	}
 
 	private static List<User> createRandomUsers(int count) {
@@ -89,8 +89,8 @@ class UserRepositoryTests {
 		log.info("Testing custom repository functionality...");
 
 		// Warm up
-		userRepo.ingest(createRandomUsers(1));
-		userRepo.deleteAll();
+		repo.ingest(createRandomUsers(1));
+		repo.deleteAll();
 
 		// Create users
 		int userCount = 100;
@@ -98,22 +98,37 @@ class UserRepositoryTests {
 
 		// Insert
 		Stopwatch sw = Stopwatch.createStarted();
-		userRepo.ingest(users);
+		repo.ingest(users);
 		sw.stop();
 		log.info("Time for inserting using async insert: " + sw.elapsed(TimeUnit.MILLISECONDS) + " ms");
 
 		// Wait for the records to be completely inserted in the background
-		await().until(() -> userRepo.count() == userCount);
+		await().until(() -> repo.count() == userCount);
 	}
 
 	@Test
 	void testInsertIfNotExists() throws Exception {
 		User user = new User(UUID.randomUUID(), "Bob", "Smith");
 
-		Optional<User> result = userRepo.insertIfNotExists(user);
+		Optional<User> result = repo.insertIfNotExists(user);
 		assertTrue(result.isPresent());
-		result = userRepo.insertIfNotExists(user);
+		result = repo.insertIfNotExists(user);
 		assertFalse(result.isPresent());
+	}
+
+	@Test
+	void testByPartition() throws Exception {
+		var userId = UUID.randomUUID();
+
+		repo.insert(new User(userId, "Bob", "Smith"));
+		assertEquals(1, repo.findByPartition(userId).size());
+
+		var partitions = repo.findPartitions();
+		assertEquals(1, partitions.size());
+		assertEquals(userId, partitions.get(0));
+
+		repo.deleteByPartition(userId);
+		assertEquals(0, repo.findByPartition(userId).size());
 	}
 
 }

@@ -15,6 +15,19 @@ CREATE INDEX IF NOT EXISTS user_index0 ON user (first_name);
 CREATE INDEX IF NOT EXISTS user_index1 ON user (last_name);
 
 -- =============================================================================
+-- Geographic users
+-- =============================================================================
+CREATE TABLE IF NOT EXISTS geographic_user (
+	country     TEXT,
+	city        TEXT,
+	user_id     UUID,
+	create_time TIMESTAMP,
+	update_time TIMESTAMP,
+
+	PRIMARY KEY ((country, city), user_id)
+);
+
+-- =============================================================================
 -- Task locks
 -- =============================================================================
 CREATE TABLE IF NOT EXISTS task_lock (

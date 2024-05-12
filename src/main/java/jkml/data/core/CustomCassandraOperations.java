@@ -10,7 +10,7 @@ import org.springframework.data.cassandra.core.AsyncCassandraOperations;
 
 public class CustomCassandraOperations {
 
-	private static final int PERMITS = 1024; // DataStax driver's default max number of concurrent requests per connection
+	private static final int PERMITS = Runtime.getRuntime().availableProcessors();
 
 	private final Logger log = LoggerFactory.getLogger(CustomCassandraOperations.class);
 
