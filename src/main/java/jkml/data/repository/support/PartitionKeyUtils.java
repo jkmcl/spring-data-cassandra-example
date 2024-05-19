@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import org.springframework.beans.BeanUtils;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.core.annotation.MergedAnnotations;
 import org.springframework.data.cassandra.core.cql.PrimaryKeyType;
@@ -37,6 +38,10 @@ public class PartitionKeyUtils {
 			}
 		}
 
+		if (fields.isEmpty()) {
+			throw new IllegalArgumentException("@PrimaryKeyColumn field not found in class: " + primaryKeyClass.getName());
+		}
+
 		var result = new LinkedHashMap<String, Field>();
 		for (var entry : fields.entrySet()) {
 			result.put(MergedAnnotations.from(entry.getKey()).get(Column.class).getString("value"), entry.getValue());
@@ -51,7 +56,8 @@ public class PartitionKeyUtils {
 				return MergedAnnotations.from(pk).get(Column.class).getString("value");
 			}
 		}
-		return null;
+
+		throw new IllegalArgumentException("@PrimaryKey field not found in class: " + entityClass.getName());
 	}
 
 	static List<String> getColumnNames(Map<String, Field> columns) {
@@ -68,8 +74,11 @@ public class PartitionKeyUtils {
 		var result = new ArrayList<CriteriaDefinition>(columns.size());
 		for (var entry : columns.entrySet()) {
 			var field = entry.getValue();
-			field.setAccessible(true);
-			result.add(Criteria.where(entry.getKey()).is(ReflectionUtils.getField(field, id)));
+			var pd = BeanUtils.getPropertyDescriptor(field.getDeclaringClass(), field.getName());
+			if (pd == null) {
+				throw new IllegalStateException("PropertyDescriptor not found: " + field.getName());
+			}
+			result.add(Criteria.where(entry.getKey()).is(ReflectionUtils.invokeMethod(pd.getReadMethod(), id)));
 		}
 		return List.copyOf(result);
 	}
