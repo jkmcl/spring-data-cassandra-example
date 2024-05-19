@@ -39,7 +39,7 @@ public class CustomCassandraRepositoryImpl<T, ID> extends SimpleCassandraReposit
 	public List<ID> findPartitions() {
 		var idClass = this.entityInformation.getIdType();
 		var entityClass = this.entityInformation.getJavaType();
-		var columnNames = PartitionUtils.getColumnNames(idClass, entityClass);
+		var columnNames = PartitionKeyUtils.getColumnNames(idClass, entityClass);
 		var selectors = new ArrayList<Selector>(columnNames.size());
 		columnNames.forEach(c -> selectors.add(Selector.column(c)));
 		var selectFrom = QueryBuilder.selectFrom(this.entityInformation.getTableName()).distinct().selectors(selectors);
@@ -50,7 +50,7 @@ public class CustomCassandraRepositoryImpl<T, ID> extends SimpleCassandraReposit
 	public List<T> findByPartition(ID id) {
 		var idClass = this.entityInformation.getIdType();
 		var entityClass = this.entityInformation.getJavaType();
-		var criteriaDefinitions = PartitionUtils.getCriteriaDefinitions(id, idClass, entityClass);
+		var criteriaDefinitions = PartitionKeyUtils.getCriteriaDefinitions(id, idClass, entityClass);
 		return this.operations.select(Query.query(criteriaDefinitions), entityClass);
 	}
 
@@ -58,7 +58,7 @@ public class CustomCassandraRepositoryImpl<T, ID> extends SimpleCassandraReposit
 	public void deleteByPartition(ID id) {
 		var idClass = this.entityInformation.getIdType();
 		var entityClass = this.entityInformation.getJavaType();
-		var criteriaDefinitions = PartitionUtils.getCriteriaDefinitions(id, idClass, entityClass);
+		var criteriaDefinitions = PartitionKeyUtils.getCriteriaDefinitions(id, idClass, entityClass);
 		this.operations.delete(Query.query(criteriaDefinitions), entityClass);
 	}
 

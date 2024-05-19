@@ -19,16 +19,16 @@ import org.springframework.data.cassandra.core.query.Criteria;
 import org.springframework.data.cassandra.core.query.CriteriaDefinition;
 import org.springframework.util.ReflectionUtils;
 
-public class PartitionUtils {
+public class PartitionKeyUtils {
 
-	private PartitionUtils() {
+	private PartitionKeyUtils() {
 	}
 
 	private static boolean isPrimaryKeyClass(Class<?> idClass) {
 		return AnnotationUtils.findAnnotation(idClass, PrimaryKeyClass.class) != null;
 	}
 
-	static Map<String, Field> getPartitionKeyColumns(Class<?> primaryKeyClass) {
+	static Map<String, Field> getColumns(Class<?> primaryKeyClass) {
 		var fields = new TreeMap<PrimaryKeyColumn, Field>(CassandraPrimaryKeyColumnAnnotationComparator.INSTANCE);
 		for (var field : primaryKeyClass.getDeclaredFields()) {
 			var pk = field.getDeclaredAnnotation(PrimaryKeyColumn.class);
@@ -44,7 +44,7 @@ public class PartitionUtils {
 		return result;
 	}
 
-	public static String getPartitionKeyColumnName(Class<?> entityClass) {
+	static String getColumnName(Class<?> entityClass) {
 		for (var field : entityClass.getDeclaredFields()) {
 			var pk = field.getDeclaredAnnotation(PrimaryKey.class);
 			if (pk != null) {
@@ -54,17 +54,17 @@ public class PartitionUtils {
 		return null;
 	}
 
-	public static List<String> getPartitionKeyColumnNames(Map<String, Field> columns) {
+	static List<String> getColumnNames(Map<String, Field> columns) {
 		var result = new ArrayList<String>(columns.size());
 		columns.keySet().forEach(result::add);
 		return List.copyOf(result);
 	}
 
-	public static CriteriaDefinition getCriteriaDefinition(String columnName, Object id) {
+	static CriteriaDefinition getCriteriaDefinition(String columnName, Object id) {
 		return Criteria.where(columnName).is(id);
 	}
 
-	public static List<CriteriaDefinition> getCriteriaDefinitions(Map<String, Field> columns, Object id) {
+	static List<CriteriaDefinition> getCriteriaDefinitions(Map<String, Field> columns, Object id) {
 		var result = new ArrayList<CriteriaDefinition>(columns.size());
 		for (var entry : columns.entrySet()) {
 			var field = entry.getValue();
@@ -75,13 +75,12 @@ public class PartitionUtils {
 	}
 
 	public static List<String> getColumnNames(Class<?> idClass, Class<?> entityClass) {
-		return isPrimaryKeyClass(idClass) ? getPartitionKeyColumnNames(getPartitionKeyColumns(idClass))
-				: List.of(getPartitionKeyColumnName(entityClass));
+		return isPrimaryKeyClass(idClass) ? getColumnNames(getColumns(idClass)) : List.of(getColumnName(entityClass));
 	}
 
 	public static List<CriteriaDefinition> getCriteriaDefinitions(Object id, Class<?> idClass, Class<?> entityClass) {
-		return isPrimaryKeyClass(idClass) ? getCriteriaDefinitions(getPartitionKeyColumns(idClass), id)
-				: List.of(getCriteriaDefinition(getPartitionKeyColumnName(entityClass), id));
+		return isPrimaryKeyClass(idClass) ? getCriteriaDefinitions(getColumns(idClass), id)
+				: List.of(getCriteriaDefinition(getColumnName(entityClass), id));
 	}
 
 }
