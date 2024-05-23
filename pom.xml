@@ -17,10 +17,10 @@
 
 	<properties>
 		<java.version>17</java.version>
-		<cassandra-unit.version>4.3.1.0</cassandra-unit.version>
 		<cassandra.version>4.0.13</cassandra.version>
-		<jna.version>5.14.0</jna.version>
+		<cassandra-unit.version>4.3.1.0</cassandra-unit.version>
 		<jamm.version>0.4.0</jamm.version>
+		<jna.version>5.6.0</jna.version>
 	</properties>
 
 	<dependencies>
@@ -42,10 +42,12 @@
 			<version>${cassandra-unit.version}</version>
 			<scope>test</scope>
 			<exclusions>
+				<!-- Not used by Cassandra 4 -->
 				<exclusion>
 					<groupId>org.apache.thrift</groupId>
 					<artifactId>*</artifactId>
 				</exclusion>
+				<!-- Prefer JUnit 5 -->
 				<exclusion>
 					<groupId>junit</groupId>
 					<artifactId>*</artifactId>
@@ -54,22 +56,22 @@
 		</dependency>
 
 	</dependencies>
-	
+
 	<dependencyManagement>
 
 		<dependencies>
-			
+
 			<dependency>
 				<groupId>org.apache.cassandra</groupId>
 				<artifactId>cassandra-all</artifactId>
 				<version>${cassandra.version}</version>
 				<exclusions>
-					<!-- Exclude high-scale-lib because its source files are already in src/test excluding classes in packages of jdk.base -->
+					<!-- high-scale-lib source files already in src/test excluding classes in packages in jdk.base -->
 					<exclusion>
 						<groupId>com.boundary</groupId>
 						<artifactId>*</artifactId>
 					</exclusion>
-					<!-- Exclude dependencies containing classes in packages of jdk.base -->
+					<!-- These contain classes in packages in jdk.base used by nodetool only -->
 					<exclusion>
 						<groupId>org.gridkit.jvmtool</groupId>
 						<artifactId>*</artifactId>
@@ -81,14 +83,14 @@
 				</exclusions>
 			</dependency>
 
-			<!-- cassandra-unit hard codes an old version for no reason -->
+			<!-- cassandra-unit POM declares an old version for unknown reason -->
 			<dependency>
 				<groupId>net.java.dev.jna</groupId>
 				<artifactId>jna</artifactId>
 				<version>${jna.version}</version>
 			</dependency>
 
-			<!-- Use version that works on Java 17 -->
+			<!-- Version that works on Java 17 -->
 			<dependency>
 				<groupId>com.github.jbellis</groupId>
 				<artifactId>jamm</artifactId>
@@ -105,8 +107,7 @@
 				<artifactId>maven-surefire-plugin</artifactId>
 				<configuration>
 					<argLine>
-						<!-- From
-						https://github.com/apache/cassandra/blob/cassandra-4.0.12/conf/jvm11-clients.options -->
+						<!-- From https://github.com/apache/cassandra/blob/cassandra-4.0.12/conf/jvm11-clients.options -->
 						--add-exports java.base/jdk.internal.misc=ALL-UNNAMED
 						--add-exports java.base/jdk.internal.ref=ALL-UNNAMED
 						--add-exports java.base/sun.nio.ch=ALL-UNNAMED
