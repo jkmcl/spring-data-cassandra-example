@@ -62,7 +62,7 @@ class UserRepositoryTests {
 	}
 
 	@Test
-	void testRepository() throws Exception {
+	void testRepository() {
 		log.info("Testing repository methods...");
 
 		// Save a couple of users
@@ -85,7 +85,7 @@ class UserRepositoryTests {
 	}
 
 	@Test
-	void testCustomRepository() throws Exception {
+	void testCustomRepository() {
 		log.info("Testing custom repository functionality...");
 
 		// Warm up
@@ -100,14 +100,14 @@ class UserRepositoryTests {
 		Stopwatch sw = Stopwatch.createStarted();
 		repo.ingest(users);
 		sw.stop();
-		log.info("Time for inserting using async insert: " + sw.elapsed(TimeUnit.MILLISECONDS) + " ms");
+		log.info("Time for inserting using async insert: {} ms", sw.elapsed(TimeUnit.MILLISECONDS));
 
 		// Wait for the records to be completely inserted in the background
 		await().until(() -> repo.count() == userCount);
 	}
 
 	@Test
-	void testInsertIfNotExists() throws Exception {
+	void testInsertIfNotExists() {
 		User user = new User(UUID.randomUUID(), "Bob", "Smith");
 
 		Optional<User> result = repo.insertIfNotExists(user);
@@ -117,7 +117,7 @@ class UserRepositoryTests {
 	}
 
 	@Test
-	void testByPartition() throws Exception {
+	void testByPartition() {
 		var userId = UUID.randomUUID();
 
 		repo.insert(new User(userId, "Bob", "Smith"));

@@ -18,10 +18,14 @@ import org.springframework.data.convert.WritingConverter;
 import jkml.data.core.CustomCassandraOperations;
 import jkml.data.entity.User.Role;
 import jkml.data.repository.PackageMarker;
+import jkml.data.repository.support.CustomCassandraRepositoryFactoryBean;
 import jkml.data.repository.support.CustomCassandraRepositoryImpl;
 
 @Configuration
-@EnableCassandraRepositories(repositoryBaseClass = CustomCassandraRepositoryImpl.class, basePackageClasses = PackageMarker.class)
+@EnableCassandraRepositories(
+		basePackageClasses = PackageMarker.class,
+		repositoryBaseClass = CustomCassandraRepositoryImpl.class,
+		repositoryFactoryBeanClass = CustomCassandraRepositoryFactoryBean.class)
 class CassandraConfiguration {
 
 	/**

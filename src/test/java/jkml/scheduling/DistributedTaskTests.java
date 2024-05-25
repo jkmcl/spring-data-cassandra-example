@@ -28,7 +28,7 @@ class DistributedTaskTests {
 	private TaskLockRepository taskLockRepo;
 
 	@Test
-	void test() throws Exception {
+	void test() {
 		log.info("Running plain task...");
 		MyTask task = new MyTask();
 		task.run();

@@ -59,7 +59,7 @@ class GeographicUserRepositoryTests {
 	}
 
 	@Test
-	void testByPartition() throws Exception {
+	void testByPartition() {
 		var user = createUser("USA", "New York", UUID.randomUUID());
 		var userKey = user.getKey();
 

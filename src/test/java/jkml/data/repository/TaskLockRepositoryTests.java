@@ -34,7 +34,7 @@ class TaskLockRepositoryTests {
 	private RepoTestHelper testHelper;
 
 	@Test
-	void test() throws Exception {
+	void test() {
 
 		String name = "MyTask";
 		int timeout = 5;

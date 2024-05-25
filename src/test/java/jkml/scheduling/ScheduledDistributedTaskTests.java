@@ -40,7 +40,7 @@ class ScheduledDistributedTaskTests {
 	private RepoTestHelper testHelper;
 
 	@Test
-	void test() throws Exception {
+	void test() {
 		log.info("Creating task lock entity...");
 		String taskName = MyTask.class.getSimpleName();
 		TaskLock taskLock = new TaskLock();

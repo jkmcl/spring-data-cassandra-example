@@ -11,6 +11,8 @@ import org.springframework.data.cassandra.repository.query.CassandraEntityInform
 import org.springframework.data.cassandra.repository.support.SimpleCassandraRepository;
 import org.springframework.util.Assert;
 
+import com.datastax.oss.driver.api.core.CqlSession;
+import com.datastax.oss.driver.api.core.cql.PreparedStatement;
 import com.datastax.oss.driver.api.querybuilder.QueryBuilder;
 import com.datastax.oss.driver.api.querybuilder.select.Selector;
 
@@ -22,10 +24,22 @@ public class CustomCassandraRepositoryImpl<T, ID> extends SimpleCassandraReposit
 
 	private final CassandraOperations operations;
 
+	private PreparedStatement selectDistinct;
+
 	public CustomCassandraRepositoryImpl(CassandraEntityInformation<T, ID> metadata, CassandraOperations operations) {
 		super(metadata, operations);
 		this.entityInformation = metadata;
 		this.operations = operations;
+	}
+
+	public void createSelectDistinct(CqlSession session) {
+		var idClass = this.entityInformation.getIdType();
+		var entityClass = this.entityInformation.getJavaType();
+		var columnNames = PartitionKeyUtils.getColumnNames(idClass, entityClass);
+		var selectors = new ArrayList<Selector>(columnNames.size());
+		columnNames.forEach(c -> selectors.add(Selector.column(c)));
+		var query = QueryBuilder.selectFrom(this.entityInformation.getTableName()).distinct().selectors(selectors);
+		this.selectDistinct = session.prepare(query.build());
 	}
 
 	@Override
@@ -38,12 +52,7 @@ public class CustomCassandraRepositoryImpl<T, ID> extends SimpleCassandraReposit
 	@Override
 	public List<ID> findPartitions() {
 		var idClass = this.entityInformation.getIdType();
-		var entityClass = this.entityInformation.getJavaType();
-		var columnNames = PartitionKeyUtils.getColumnNames(idClass, entityClass);
-		var selectors = new ArrayList<Selector>(columnNames.size());
-		columnNames.forEach(c -> selectors.add(Selector.column(c)));
-		var selectFrom = QueryBuilder.selectFrom(this.entityInformation.getTableName()).distinct().selectors(selectors);
-		return this.operations.select(selectFrom.build(), idClass);
+		return this.operations.select(this.selectDistinct.bind(), idClass);
 	}
 
 	@Override
