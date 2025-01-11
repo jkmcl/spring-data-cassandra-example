@@ -8,7 +8,7 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>3.3.4</version>
+		<version>3.4.1</version>
 	</parent>
 
 	<groupId>jkml</groupId>
@@ -17,10 +17,11 @@
 
 	<properties>
 		<java.version>17</java.version>
-		<cassandra.version>4.0.14</cassandra.version>
+		<cassandra.version>4.0.15</cassandra.version>
 		<cassandra-unit.version>4.3.1.0</cassandra-unit.version>
 		<jamm.version>0.4.0</jamm.version>
-		<jna.version>5.15.0</jna.version>
+		<jna.version>5.16.0</jna.version>
+		<failureaccess.version>1.0.2</failureaccess.version>
 	</properties>
 
 	<dependencies>
@@ -53,6 +54,14 @@
 					<artifactId>*</artifactId>
 				</exclusion>
 			</exclusions>
+		</dependency>
+
+		<!-- Contains classes used by cassandra-all but no longer in Guava 32.1.0 or above -->
+		<dependency>
+			<groupId>com.google.guava</groupId>
+			<artifactId>failureaccess</artifactId>
+			<version>${failureaccess.version}</version>
+			<scope>runtime</scope>
 		</dependency>
 
 	</dependencies>
