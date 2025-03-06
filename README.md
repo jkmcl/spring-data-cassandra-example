@@ -9,7 +9,7 @@ Features:
 * POM tweaks and customized Cassandra classes to make CassandraUnit and Cassandra 4.0 work with Spring Boot 3.4 on Java 17
 * Custom query methods utilizing secondary indexes
 * A custom repository method that performs bulk insert asynchronously with number of in-flight inserts limited using a semaphore
-* A custom repository base class that provides a insertIfNotExists method and partition-oriented methods
+* A custom repository base class that provides a insertIfNotExists method that retries on CASWriteUnknownException and partition-oriented methods
 * A task lock implemented using Cassandra's lightweight transaction to ensure that a task is only executed by one thread at any given time
 * Two Runnable wrapper classes for synchronizing execution of scheduled tasks across multiple threads/processes
 * Custom converters for converting between enums and their text values stored in Cassandra

@@ -45,7 +45,7 @@ public class CustomCassandraRepositoryImpl<T, ID> extends SimpleCassandraReposit
 	@Override
 	public <S extends T> Optional<S> insertIfNotExists(S entity) {
 		Assert.notNull(entity, "Entity must not be null");
-		var result = this.operations.insert(entity, IF_NOT_EXISTS);
+		var result = CASUtils.insert(this.operations, entity, IF_NOT_EXISTS);
 		return result.wasApplied() ? Optional.of(result.getEntity()) : Optional.empty();
 	}
 
