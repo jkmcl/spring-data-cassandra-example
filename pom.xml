@@ -8,7 +8,7 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>3.4.3</version>
+		<version>3.4.4</version>
 	</parent>
 
 	<groupId>jkml</groupId>
@@ -20,8 +20,8 @@
 		<cassandra.version>4.0.17</cassandra.version>
 		<cassandra-unit.version>4.3.1.0</cassandra-unit.version>
 		<jamm.version>0.4.0</jamm.version>
-		<jna.version>5.16.0</jna.version>
-		<failureaccess.version>1.0.2</failureaccess.version>
+		<jna.version>5.17.0</jna.version>
+		<failureaccess.version>1.0.3</failureaccess.version>
 	</properties>
 
 	<dependencies>
